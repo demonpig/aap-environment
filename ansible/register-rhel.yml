@@ -1,0 +1,22 @@
+---
+
+- name: Red Hat Registration
+  hosts: all
+
+  vars_prompt:
+    - name: rhel_username
+      prompt: Username
+      private: no
+
+    - name: rhel_password
+      prompt: Password
+      private: yes
+
+  tasks:
+    - name: Register RHEL VMs
+      communtity.general.redhat_subscription:
+        state: present
+        username: "{{ rhel_username }}"
+        password: "{{ rhel_password }}"
+        auto_attach: true
+      no_log: true

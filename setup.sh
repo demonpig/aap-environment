@@ -23,3 +23,16 @@ vagrant_libvirt(){
 
   rm -f $env_tmpfile
 }
+
+function setup_python(){
+  local pyenv="$(dirname $0)"/.env
+  python3 -m venv $pyenv
+  source $pyenv/bin/activate
+  pip install --upgrade pip
+  pip install -r requirements.txt
+  ansible-galaxy install -r "$(dirname $0)"/ansible/requirements.yml
+}
+
+if [[ "$1" == "setup" ]]; then
+  setup_python
+fi
