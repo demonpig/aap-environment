@@ -59,10 +59,18 @@ function download_aap_release(){
   fi
 }
 
+function get_ips(){
+  vagrant_libvirt provision --provision-with get_ip
+}
+
 if [[ "$1" == "setup" ]]; then
   setup_python
 fi
 
 if [[ "$1" == "download" ]]; then
   download_aap_release "$2"
+fi
+
+if [[ "$1" == "get-ip" ]]; then
+  get_ips
 fi

@@ -54,6 +54,8 @@ Vagrant.configure("2") do |config|
     vm.cpus = 2
   end
 
+  config.vm.provision "shell", name: "get_ip", path: "scripts/get-ip-addr.sh"
+
   # Virtual Machines
   ## Ansible Tower Environment
   (1..controller_count).each do |i|
