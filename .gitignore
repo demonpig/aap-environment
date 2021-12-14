@@ -21,6 +21,7 @@ roles/**
 *pass*
 *password*
 *.txt
+!requirements.txt
 
 # Exclude all binaries
 *.bin
