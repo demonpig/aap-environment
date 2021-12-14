@@ -33,6 +33,36 @@ function setup_python(){
   ansible-galaxy install -r "$(dirname $0)"/ansible/requirements.yml
 }
 
+function download_aap_release(){
+  local version="$1"
+  local archivedir="$(dirname $0)/archives/${version}"
+  mkdir -p $archivedir
+  cd $archivedir
+  for i in {0..5}; do
+    # Giving it 10 tries to download the archives
+    # https://releases.ansible.com/ansible-tower/setup/ansible-tower-setup-3.8.4-1.tar.gz
+    if [[ $i -eq 0 ]]; then
+      curl -sk -f -LO https://releases.ansible.com/ansible-tower/setup/ansible-tower-setup-${version}.tar.gz || continue
+      echo "ansible-tower-setup-${version}.tar.gz" > .archive_version
+    else
+      curl -sk -f -LO https://releases.ansible.com/ansible-tower/setup/ansible-tower-setup-${version}-${i}.tar.gz || continue
+      echo "ansible-tower-setup-${version}-${i}.tar.gz" > .archive_version
+    fi
+    break
+  done
+
+  if [[ -f .archive_version ]]; then
+    tar xf "$(cat .archive_version)"
+    rm -f "$(cat .archive_version)"
+  else
+    >&2 echo "Ansible Tower or AAP verison ${version} does not exist"
+  fi
+}
+
 if [[ "$1" == "setup" ]]; then
   setup_python
+fi
+
+if [[ "$1" == "download" ]]; then
+  download_aap_release "$2"
 fi

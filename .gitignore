@@ -30,6 +30,7 @@ roles/**
 *.zip
 *.gzip
 *.tgz
+*.tar.gz
 
 
 ### Git ###
@@ -271,3 +272,4 @@ $RECYCLE.BIN/
 
 ansible/roles/**
 ansible/collections/**
+archives/**
