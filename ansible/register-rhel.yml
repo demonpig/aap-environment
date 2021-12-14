@@ -2,6 +2,8 @@
 
 - name: Red Hat Registration
   hosts: all
+  become: true
+  become_user: root
 
   vars_prompt:
     - name: rhel_username
@@ -12,11 +14,51 @@
       prompt: Password
       private: yes
 
+  handlers:
+    - name: restart sshd
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
+
   tasks:
     - name: Register RHEL VMs
-      communtity.general.redhat_subscription:
+      community.general.redhat_subscription:
         state: present
         username: "{{ rhel_username }}"
         password: "{{ rhel_password }}"
         auto_attach: true
       no_log: true
+      async: 60
+      poll: 0
+      register: rhel_subscription
+
+    - name: Allow password authentication for ssh
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        line: "{{ item.line }}"
+        state: "{{ item.state }}"
+        owner: root
+        group: root
+        mode: 0600
+      loop:
+        - line: 'PasswordAuthentication no'
+          state: absent
+        - line: 'PasswordAuthentication yes'
+          state: present
+      notify:
+        - restart sshd
+
+    - name: Check on subscription task
+      ansible.builtin.async_status:
+        jid: "{{ rhel_subscription.ansible_job_id }}"
+      register: job_result
+      until: job_result.finished
+      retries: 20
+      delay: 10
+
+    - name: Refresh cache
+      ansible.builtin.yum:
+        update_cache: true
+        state: latest
+      when: job_result.finished
+

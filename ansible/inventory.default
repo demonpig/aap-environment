@@ -1,0 +1,12 @@
+# Example Inventory
+
+# AAP Controllers
+controller1 ansible_host=192.168.56.11
+
+# AAP Database
+
+# AAP Automation Hub
+automationhub1 ansible_host=192.168.56.31
+
+# AAP Execution Node
+execution1 ansible_host=192.168.56.41

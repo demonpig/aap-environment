@@ -60,7 +60,7 @@ function download_aap_release(){
 }
 
 function get_ips(){
-  vagrant_libvirt provision --provision-with get_ip
+  vagrant_libvirt provision --no-color --provision-with get_ip
 }
 
 if [[ "$1" == "setup" ]]; then
