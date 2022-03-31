@@ -38,7 +38,7 @@ execution_count = ENV.has_key?('TOWER_EXECUTION_NODE_COUNT') ? ENV.fetch('TOWER_
 
 # Local Variables
 time = Time.new
-build_version = time.strftime('%Y%m')
+build_version = time.strftime('%Y%m') + "-" + [*('a'..'z'),*('0'..'9')].shuffle[0,8].join
 
 Vagrant.configure("2") do |config|
   # Default Values
@@ -54,14 +54,15 @@ Vagrant.configure("2") do |config|
     vm.cpus = 2
   end
 
-  config.vm.provision "shell", name: "get_ip", path: "scripts/get-ip-addr.sh"
-
   # Virtual Machines
   ## Ansible Tower Environment
   (1..controller_count).each do |i|
     config.vm.define "controller#{i}" do |controller|
-      controller.vm.hostname = "controller#{i}-wkst-#{build_version}.local"
-      controller.vm.network "private_network", ip: "192.168.56.1#{i}"
+      controller.vm.hostname = "controller#{i}-#{build_version}.local"
+      controller.vm.network "private_network", 
+        :ip => "192.168.56.1#{i}",
+        :libvirt__network_name => "ansible",
+        :libvirt__always_destroy => false
       controller.vm.provider "virtualbox" do |vm|
         vm.memory = "8192"
       end
@@ -74,8 +75,11 @@ Vagrant.configure("2") do |config|
   if database_use_external || controller_count > 1
     (1..database_count).each do |i|
       config.vm.define "database#{i}" do |database|
-        database.vm.hostname = "database#{i}-wkst-#{build_version}.local"
-        database.vm.network "private_network", ip: "192.168.56.2#{i}"
+        database.vm.hostname = "database#{i}-#{build_version}.local"
+        database.vm.network "private_network", 
+          :ip => "192.168.56.2#{i}",
+          :libvirt__network_name => "ansible",
+          :libvirt__always_destroy => false
         database.vm.provider "virtualbox" do |vm|
           vm.memory = "4096"
         end
@@ -88,8 +92,11 @@ Vagrant.configure("2") do |config|
 
   (1..automationhub_count).each do |i|
     config.vm.define "automationhub#{i}" do |automationhub|
-      automationhub.vm.hostname = "automationhub#{i}-wkst-#{build_version}.local"
-      automationhub.vm.network "private_network", ip: "192.168.56.3#{i}"
+      automationhub.vm.hostname = "automationhub#{i}-#{build_version}.local"
+      automationhub.vm.network "private_network", 
+        :ip => "192.168.56.3#{i}",
+        :libvirt__network_name => "ansible",
+        :libvirt__always_destroy => false
       automationhub.vm.provider "virtualbox" do |vm|
         vm.memory = "8192"
       end
@@ -101,8 +108,11 @@ Vagrant.configure("2") do |config|
 
   (1..execution_count).each do |i|
     config.vm.define "execution#{i}" do |execution|
-      execution.vm.hostname = "execution#{i}-wkst-#{build_version}.local"
-      execution.vm.network "private_network", ip: "192.168.56.4#{i}"
+      execution.vm.hostname = "execution#{i}-#{build_version}.local"
+      execution.vm.network "private_network", 
+        :ip => "192.168.56.4#{i}",
+        :libvirt__network_name => "ansible",
+        :libvirt__always_destroy => false
       execution.vm.provider "virtualbox" do |vm|
         vm.memory = "8192"
       end
@@ -114,7 +124,7 @@ Vagrant.configure("2") do |config|
   ## END Ansible Tower Environment
   
   # Controlled Servers
-  config.vm.define "srvrhel8", autostart: false do |systm|
+  config.vm.define "srv_rhel8", autostart: false do |systm|
     systm.vm.box = "generic/rhel8"
     systm.vm.hostname = "srvrhel8.local"
     systm.vm.network "private_network", ip: "192.168.56.100"
@@ -128,7 +138,7 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  config.vm.define "srvcentos8", autostart: false do |systm|
+  config.vm.define "srv_centos8", autostart: false do |systm|
     systm.vm.box = "centos/stream8"
     systm.vm.hostname = "srvrhel8.local"
     systm.vm.network "private_network", ip: "192.168.56.101"

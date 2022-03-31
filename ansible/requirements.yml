@@ -1,8 +1,5 @@
 ---
 
 collections:
+  - name: ansible.posix
   - name: community.general
-
-roles:
-  - name: demonpig.rclone
-    src: https://github.com/demonpig/ansible-rclone.git

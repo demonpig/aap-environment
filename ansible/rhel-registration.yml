@@ -1,7 +1,16 @@
 ---
 
-- name: Red Hat Registration
+- name: Group hosts based on distribution
   hosts: all
+  tasks:
+    - ansible.builtin.group_by:
+        key: os_{{ ansible_distribution }}
+      tags:
+        - always
+
+- name: Red Hat Enterprise Linux Server Registration / Setup
+  hosts: os_RedHat
+  gather_facts: false
   become: true
   become_user: root
 
@@ -21,6 +30,7 @@
         state: restarted
 
   tasks:
+    # Kick this task off and we will come back to it later
     - name: Register RHEL VMs
       community.general.redhat_subscription:
         state: present
@@ -32,6 +42,9 @@
       poll: 0
       register: rhel_subscription
 
+    #
+    # BEGIN: Perform whatever work is needed to finish setting up the server
+    #
     - name: Allow password authentication for ssh
       ansible.builtin.lineinfile:
         path: /etc/ssh/sshd_config
@@ -47,6 +60,9 @@
           state: present
       notify:
         - restart sshd
+    #
+    # END
+    #
 
     - name: Check on subscription task
       ansible.builtin.async_status:
@@ -56,9 +72,21 @@
       retries: 20
       delay: 10
 
-    - name: Refresh cache
+    - name: Upgrade system
       ansible.builtin.yum:
-        update_cache: true
+        name: "*"
         state: latest
+        update_cache: true
       when: job_result.finished
 
+    - name: Reboot systems
+      ansible.builtin.shell: |
+        source ~/.bashrc
+        vagrant reload
+      args:
+        chdir: ../
+      delegate_to: 127.0.0.1
+      become: false
+      run_once: true
+      tags:
+        - reboot
