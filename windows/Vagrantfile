@@ -1,0 +1,27 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Local Variables
+time = Time.new
+build_version = time.strftime('%Y%m') + "-" + [*('a'..'z'),*('0'..'9')].shuffle[0,8].join
+
+Vagrant.configure("2") do |config|
+  # Default Values
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  # Controlled Servers
+  config.vm.define "windows_10", autostart: true do |server|
+    server.vm.box = "peru/windows-10-enterprise-x64-eval"
+    server.vm.hostname = "windows10#{build_version}"
+    server.vm.network "private_network", 
+        :ip => "192.168.56.251",
+        :libvirt__network_name => "ansible",
+        :libvirt__always_destroy => false
+    server.vm.provider "virtualbox" do |vm|
+        vm.memory = "8192"
+    end
+    server.vm.provider "libvirt" do |vm|
+        vm.memory = "8192"
+    end
+  end
+end
