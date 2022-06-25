@@ -17,11 +17,11 @@
   vars_prompt:
     - name: rhel_username
       prompt: Username
-      private: no
+      private: false
 
     - name: rhel_password
       prompt: Password
-      private: yes
+      private: true
 
   handlers:
     - name: restart sshd
@@ -41,28 +41,6 @@
       async: 60
       poll: 0
       register: rhel_subscription
-
-    #
-    # BEGIN: Perform whatever work is needed to finish setting up the server
-    #
-    - name: Allow password authentication for ssh
-      ansible.builtin.lineinfile:
-        path: /etc/ssh/sshd_config
-        line: "{{ item.line }}"
-        state: "{{ item.state }}"
-        owner: root
-        group: root
-        mode: 0600
-      loop:
-        - line: 'PasswordAuthentication no'
-          state: absent
-        - line: 'PasswordAuthentication yes'
-          state: present
-      notify:
-        - restart sshd
-    #
-    # END
-    #
 
     - name: Check on subscription task
       ansible.builtin.async_status:

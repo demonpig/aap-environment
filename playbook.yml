@@ -1,0 +1,55 @@
+---
+
+- name: Initial Setup Playbook
+  hosts: all
+  gather_facts: false
+
+  handlers:
+    - name: restart sshd
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
+        enabled: true
+      become: true
+      become_user: root
+      when: ansible_os_family == "RedHat"
+
+  tasks:
+    - name: Ping server to verify connection
+      ansible.builtin.ping:
+
+    - name: Gather IP information on host
+      ansible.builtin.setup:
+
+    - name: Configure /etc/hosts so all hosts are know the FQDN of each other
+      ansible.builtin.blockinfile:
+        block: |
+          {% for host in play_hosts %}
+          {{ hostvars[host]['ansible_default_ipv4']['address'] }} {{ host | replace('.local', '') }} {{ host }}
+          {% endfor %}
+        dest: /tmp/hosts
+        owner: root
+        group: root
+        mode: 0644
+        create: true
+        backup: true
+      become: true
+      become_user: root
+
+    - name: Allow password authentication for ssh
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        line: "{{ item.line }}"
+        state: "{{ item.state }}"
+        owner: root
+        group: root
+        mode: 0600
+      become: true
+      become_user: root
+      loop:
+        - line: 'PasswordAuthentication no'
+          state: absent
+        - line: 'PasswordAuthentication yes'
+          state: present
+      notify:
+        - restart sshd

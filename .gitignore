@@ -1,4 +1,9 @@
 
+# Custom
+.ssh-config
+collections/
+roles/
+
 # Created by https://www.toptal.com/developers/gitignore/api/ansibletower,vagrant,ansible,windows,linux,macos,git,python
 # Edit at https://www.toptal.com/developers/gitignore?templates=ansibletower,vagrant,ansible,windows,linux,macos,git,python
 
