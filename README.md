@@ -22,6 +22,11 @@ This repository contains content that I use to setup Ansible Tower / Ansible Aut
   ansible-galaxy collection install -r requirements.yml
   ```
 
+- Run initial playbook
+  ```
+  ansible-playbook playbook.yml
+  ```
+
 # Usage
 ## Rebuilding
 - Destroy the Vagrant environment
