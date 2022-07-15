@@ -24,7 +24,7 @@ This repository contains content that I use to setup Ansible Tower / Ansible Aut
 
 - Run initial playbook
   ```
-  ansible-playbook playbook.yml
+  ansible-playbook playbooks/main.yml
   ```
 
 # Usage
