@@ -42,6 +42,11 @@
       poll: 0
       register: rhel_subscription
 
+    - name: Remove EPEL
+      ansible.builtin.yum:
+        name: epel-release.noarch
+        state: absent
+
     - name: Check on subscription task
       ansible.builtin.async_status:
         jid: "{{ rhel_subscription.ansible_job_id }}"
