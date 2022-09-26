@@ -30,6 +30,9 @@
         state: restarted
 
   tasks:
+    - name: Truncate EPEL repo files
+      ansible.builtin.shell: truncate -s0 /etc/yum.repos.d/epel*.repo
+  
     # Kick this task off and we will come back to it later
     - name: Register RHEL VMs
       community.general.redhat_subscription:
@@ -41,11 +44,6 @@
       async: 60
       poll: 0
       register: rhel_subscription
-
-    - name: Remove EPEL
-      ansible.builtin.yum:
-        name: epel-release.noarch
-        state: absent
 
     - name: Check on subscription task
       ansible.builtin.async_status:
