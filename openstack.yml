@@ -1,0 +1,4 @@
+# openstack dynamic inventory
+plugin: openstack.cloud.openstack
+fail_on_errors: true
+inventory_hostname: name

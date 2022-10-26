@@ -1,0 +1,109 @@
+---
+
+- name: Group hosts based on distribution
+  hosts: all
+  tasks:
+    - ansible.builtin.group_by:
+        key: os_{{ ansible_distribution }}
+      tags:
+        - always
+
+- name: Initial Setup
+  hosts: all
+  gather_facts: false
+
+  handlers:
+    - name: restart sshd
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
+        enabled: true
+      become: true
+      become_user: root
+      when: ansible_os_family == "RedHat"
+
+  tasks:
+    - name: Ping server to verify connection
+      ansible.builtin.ping:
+
+    - name: Gather IP information on host
+      ansible.builtin.setup:
+
+    - name: Configure /etc/hosts so all hosts are know the FQDN of each other
+      ansible.builtin.blockinfile:
+        block: |
+          {% for host in play_hosts %}
+          {{ hostvars[host]['ansible_default_ipv4']['address'] }} {{ host }}
+          {% endfor %}
+        dest: /etc/hosts
+        owner: root
+        group: root
+        mode: 0644
+        create: true
+        backup: true
+      become: true
+      become_user: root
+
+    - name: Allow password authentication for ssh
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        line: "{{ item.line }}"
+        state: "{{ item.state }}"
+        owner: root
+        group: root
+        mode: 0600
+      become: true
+      become_user: root
+      loop:
+        - line: 'PasswordAuthentication no'
+          state: absent
+        - line: 'PasswordAuthentication yes'
+          state: present
+      notify:
+        - restart sshd
+
+# BEGIN: Red Hat
+# This playbook is used to register all Red Hat Enterprise Linux (RHEL) systems.
+- name: Red Hat Enterprise Linux Server Registration / Setup
+  hosts: os_RedHat
+  gather_facts: false
+  become: true
+  become_user: root
+
+  vars_files:
+    - ~/.ansible/secrets.yml
+
+  handlers:
+    - name: restart sshd
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
+
+  vars:
+    task_timeout: 600 # 10 minutes
+
+  tasks:
+    - name: Truncate EPEL repo files
+      ansible.builtin.shell: truncate -s0 /etc/yum.repos.d/epel*.repo
+
+    # Kick this task off and we will come back to it later
+    - name: Register RHEL VMs
+      community.general.redhat_subscription:
+        state: present
+        username: "{{ rhel_username }}"
+        password: "{{ rhel_password }}"
+        auto_attach: true
+      no_log: true
+      timeout: "{{ task_timeout }}"
+
+    - name: Upgrade system
+      ansible.builtin.yum:
+        name: "*"
+        state: latest
+        update_cache: true
+      timeout: "{{ task_timeout }}"
+
+    - name: Reboot systems
+      ansible.builtin.reboot:
+      timeout: "{{ task_timeout }}"
+# END
