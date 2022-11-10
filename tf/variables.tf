@@ -36,3 +36,8 @@ variable "automation_hub_count" {
     type = number
     default = 0
 }
+
+variable "sso_count" {
+    type = number
+    default = 0
+}

@@ -83,3 +83,21 @@ resource "openstack_compute_instance_v2" "execution_node" {
     description = "Execution Node"
   }
 }
+
+resource "openstack_compute_instance_v2" "sso" {
+  name = "${var.username}_aap_${var.aap_version}_sso_${count.index + 1}"
+  image_name = "${var.os_release}"
+  flavor_name = "g.memory.medium"
+  count = var.sso_count
+
+  key_pair = "${var.username}-rsa"
+  security_groups = ["default"]
+
+  network {
+      name = "provider_net_shared"
+  }
+
+  metadata = {
+    descirption = "Red Hat SSO"
+  }
+}
