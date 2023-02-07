@@ -22,7 +22,7 @@ resource "openstack_compute_instance_v2" "controller" {
   security_groups = ["default"]
   
   network {
-      name = "provider_net_shared"
+      name = "provider_net_shared_3"
   }
 
   metadata = {
@@ -40,7 +40,7 @@ resource "openstack_compute_instance_v2" "database" {
   security_groups = ["default"]
   
   network {
-      name = "provider_net_shared"
+      name = "provider_net_shared_3"
   }
 
   metadata = {
@@ -58,7 +58,7 @@ resource "openstack_compute_instance_v2" "automation_hub" {
   security_groups = ["default"]
   
   network {
-      name = "provider_net_shared"
+      name = "provider_net_shared_3"
   }
 
   metadata = {
@@ -76,7 +76,7 @@ resource "openstack_compute_instance_v2" "execution_node" {
   security_groups = ["default"]
   
   network {
-      name = "provider_net_shared"
+      name = "provider_net_shared_3"
   }
 
   metadata = {
@@ -94,7 +94,7 @@ resource "openstack_compute_instance_v2" "sso" {
   security_groups = ["default"]
 
   network {
-      name = "provider_net_shared"
+      name = "provider_net_shared_3"
   }
 
   metadata = {
