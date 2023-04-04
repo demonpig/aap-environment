@@ -10,6 +10,13 @@ variable "os_release" {
     default = "RHEL-8.6.0-x86_64-released"
 }
 
+# This is to allow a managed node to be something different
+variable "os_release_managed" {
+    type = string
+    default = "RHEL-8.6.0-x86_64-released"
+}
+
+
 # Ansible Automation Platform Variables
 
 variable "aap_version" {
@@ -40,4 +47,9 @@ variable "automation_hub_count" {
 variable "sso_count" {
     type = number
     default = 0
+}
+
+variable "managed_node_count" {
+    type = number
+    default = 1
 }

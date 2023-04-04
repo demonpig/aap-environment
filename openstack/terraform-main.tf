@@ -10,6 +10,11 @@ required_version = ">= 0.14.0"
   }
 }
 
+provider "openstack" {
+  cloud = "openstack"
+}
+
+
 # Ansible Automation Platform Environment
 
 resource "openstack_compute_instance_v2" "controller" {
@@ -26,7 +31,7 @@ resource "openstack_compute_instance_v2" "controller" {
   }
 
   metadata = {
-    descirption = "Automation Controller"
+    description = "Automation Controller"
   }
 }
 
@@ -98,6 +103,24 @@ resource "openstack_compute_instance_v2" "sso" {
   }
 
   metadata = {
-    descirption = "Red Hat SSO"
+    description = "Red Hat SSO"
+  }
+}
+
+resource "openstack_compute_instance_v2" "managed" {
+  name = "${var.username}_aap_${var.aap_version}_managed_${count.index + 1}"
+  image_name = "${var.os_release_managed}"
+  flavor_name = "m1.medium"
+  count = var.managed_node_count
+
+  key_pair = "${var.username}-rsa"
+  security_groups = ["default"]
+
+  network {
+      name = "provider_net_shared_3"
+  }
+
+  metadata = {
+    description = "Managed System"
   }
 }
