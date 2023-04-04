@@ -1,64 +1,35 @@
 # Introduction
 
-This repository contains content that I use to setup Ansible Tower / Ansible Automation Platform environments. The main supported backend will be `libvirt`. Feel free to modify the `Vagrantfile` to support Virtualbox. Ansible should also be installed in some way on the host system.
+This repository contains content that I use to setup Ansible Tower / Ansible Automation Platform environments.
 
 # Setup
-## Vagrant
-- Configure the Vagrantfile variables (near the top of the file) to values that are suitable for the environment you are trying to build
+- [Install Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
+- [Install Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
 
-- Boot up the environment
-  ```
-  vagrant up
-  ```
+# Openstack
+Before proceeding, make sure to setup a `$HOME/.config/openstack/clouds.yaml` file. One thing to note is that the SSH key, within Openstack, needs to be named `${USERNAME}-rsa`.
 
-- Export the ssh-config for the environment. This is an important step as ansible is configured to read this config file when making a connection to the servers.
+- Change into the `openstack` directory
+- Initialize terraform
   ```
-  vagrant ssh-config > .ssh-config
-  ```
-
-## Ansible
-- Install collections
-  ```
-  ansible-galaxy collection install -r requirements.yml
+  terraform init
   ```
 
-- Run initial playbook
+- Create a `terraform.tfvars` file with the following default content
   ```
-  ansible-playbook playbooks/main.yml
-  ```
-
-# Usage
-## Rebuilding
-- Destroy the Vagrant environment
-  ```
-  vagrant destroy -f
+  username = ""
+  aap_version = ""
   ```
 
-- Create the new Vagrant environment
+- Add additional variables from `terraform-defaults.tf` to the `terraform.tfvars` to further configure the environment
+- Apply the configuration to Openstack
   ```
-  vagrant up
-  ```
-
-- Create new `.ssh-config` file for the new environment
-  ```
-  vagrant ssh-config > .ssh-config
+  terraform apply
   ```
 
-- Make any adjustments to `inventory` file
-
-## Connecting to hosts manually
-- Run the following command
+- Show the configuration to get the IPs of the servers
   ```
-  ssh -F .ssh-config $HOSTNAME
+  terraform show
   ```
 
-## Windows
-- Change into the `windows/` directory
-  ```
-  cd windows
-  ```
-
-- Create the Windows server
-  ```
-  vagrant up
-  ```
+At a later point, I will be working on using Ansible to execute Terraform and then to install Ansible Automation Platform.
