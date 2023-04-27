@@ -16,6 +16,10 @@ variable "os_release_managed" {
     default = "RHEL-8.6.0-x86_64-released"
 }
 
+variable "os_release_windows" {
+    type = string
+    default = "WINDOWS-SERVER-2022-x86_64"
+}
 
 # Ansible Automation Platform Variables
 
@@ -52,4 +56,9 @@ variable "sso_count" {
 variable "managed_node_count" {
     type = number
     default = 1
+}
+
+variable "windows_count" {
+    type = number
+    default = 0
 }

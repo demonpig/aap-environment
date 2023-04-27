@@ -124,3 +124,20 @@ resource "openstack_compute_instance_v2" "managed" {
     description = "Managed System"
   }
 }
+
+resource "openstack_compute_instance_v2" "windows" {
+  name = "${var.username}_aap_${var.aap_version}_windows_${count.index + 1}"
+  image_name = "${var.os_release_windows}"
+  flavor_name = "g.standard.medium"
+  count = var.windows_count
+
+  security_groups = ["default"]
+
+  network {
+      name = "provider_net_shared_3"
+  }
+
+  metadata = {
+    description = "Windows Server"
+  }
+}
