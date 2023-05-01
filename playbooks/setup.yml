@@ -9,7 +9,7 @@
         - always
 
 - name: Initial Setup
-  hosts: all
+  hosts: all:!windows
   gather_facts: false
 
   handlers:

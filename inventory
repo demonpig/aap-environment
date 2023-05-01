@@ -1,11 +1,44 @@
+# inventory
+# This inventory file contains several groups that represent a component of the Ansible Automation Platform (AAP) environment. When
+# environment. When adding hosts to the inventory, just make sure they are added to the appropriate group. This inventory is not
+# used for the AAP installer.
 
-# AAP Controllers
-controller1.local
+##
+## AAP Controllers
+##
+[controller]
 
-# AAP Database
+##
+## AAP Database
+##
+[database]
 
-# AAP Automation Hub
-# automationhub1.local
+##
+## AAP Automation Hub
+##
+[automation_hub]
 
-# AAP Execution Node
-# execution1.local
+##
+## AAP Execution Node
+##
+[execution_node]
+
+##
+## AAP Managed Linux Hosts
+##
+[managed]
+
+##
+## Windows servers
+##
+[windows]
+
+[all:vars]
+ansible_user = cloud-user
+
+[windows:vars]
+ansible_user = Administrator
+ansible_password = redhat
+ansible_connection = winrm
+ansible_port = 5985
+ansible_winrm_transport = ntlm
