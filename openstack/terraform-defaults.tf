@@ -18,7 +18,7 @@ variable "os_release_managed" {
 
 variable "os_release_windows" {
     type = string
-    default = "WINDOWS-SERVER-2022-x86_64"
+    default = "WINDOWS-SERVER-2022-x86_64-20230501"
 }
 
 # Ansible Automation Platform Variables
