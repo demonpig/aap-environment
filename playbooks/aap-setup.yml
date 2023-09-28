@@ -12,17 +12,17 @@
 
   module_defaults:
     group/awx.awx.controller:
-        controller_host: "https://{{ ansible_host }}"
-        controller_username: admin
-        controller_password: "{{ admin_password | default('admin') }}"
-        validate_certs: false
+      controller_host: "https://{{ ansible_host }}"
+      controller_username: admin
+      controller_password: "{{ admin_password | default('admin') }}"
+      validate_certs: false
 
   tasks:
     - name: Upload manifest to Automation Controller
       delegate_to: localhost
-      when: inventory_hostname == groups['controller'][0] 
+      when: inventory_hostname == groups['controller'][0]
       awx.awx.license:
-        manifest: "{{ lookup('pipe', 'readlink -f '+ manifest_path) }}"
+        manifest: "{{ lookup('pipe', 'readlink -f ' + manifest_path) }}"
         state: present
         force: true
 
@@ -35,7 +35,6 @@
         scm_url: https://github.com/demonpig/aap-example-project
         scm_type: git
         scm_clean: true
-        state: present
         update_project: true
 
     - name: Create common job templates used for debugging

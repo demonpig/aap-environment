@@ -3,10 +3,10 @@
 - name: Group hosts based on distribution
   hosts: all
   tasks:
-    - ansible.builtin.group_by:
+    - name: Grouping hosts by distribution
+      tags: always
+      ansible.builtin.group_by:
         key: os_{{ ansible_distribution }}
-      tags:
-        - always
 
 - name: Initial Setup
   hosts: all:!windows
@@ -30,6 +30,8 @@
       ansible.builtin.setup:
 
     - name: Configure /etc/hosts so all hosts are know the FQDN of each other
+      become: true
+      become_user: root
       ansible.builtin.blockinfile:
         block: |
           {% for host in play_hosts %}
@@ -41,17 +43,8 @@
         mode: 0644
         create: true
         backup: true
-      become: true
-      become_user: root
 
     - name: Allow password authentication for ssh
-      ansible.builtin.lineinfile:
-        path: /etc/ssh/sshd_config
-        line: "{{ item.line }}"
-        state: "{{ item.state }}"
-        owner: root
-        group: root
-        mode: 0600
       become: true
       become_user: root
       loop:
@@ -59,8 +52,14 @@
           state: absent
         - line: 'PasswordAuthentication yes'
           state: present
-      notify:
-        - restart sshd
+      notify: restart sshd
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        line: "{{ item.line }}"
+        state: "{{ item.state }}"
+        owner: root
+        group: root
+        mode: 0600
 
 # BEGIN: Red Hat
 # This playbook is used to register all Red Hat Enterprise Linux (RHEL) systems.
@@ -83,27 +82,29 @@
     task_timeout: 600 # 10 minutes
 
   tasks:
-    - name: Truncate EPEL repo files
-      ansible.builtin.shell: truncate -s0 /etc/yum.repos.d/epel*.repo
+    - name: Remove EPEL
+      ansible.builtin.dnf:
+        name: epel-release.noarch
+        state: absent
 
     # Kick this task off and we will come back to it later
     - name: Register RHEL VMs
+      no_log: true
+      timeout: "{{ task_timeout }}"
       community.general.redhat_subscription:
         state: present
         username: "{{ rhel_username }}"
         password: "{{ rhel_password }}"
         auto_attach: true
-      no_log: true
-      timeout: "{{ task_timeout }}"
 
     - name: Upgrade system
+      timeout: "{{ task_timeout }}"
       ansible.builtin.yum:
         name: "*"
         state: latest
         update_cache: true
-      timeout: "{{ task_timeout }}"
 
     - name: Reboot systems
-      ansible.builtin.reboot:
       timeout: "{{ task_timeout }}"
+      ansible.builtin.reboot:
 # END
