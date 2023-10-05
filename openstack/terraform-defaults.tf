@@ -33,6 +33,12 @@ variable "controller_count" {
     default = 1
 }
 
+variable "eda_count" {
+    type = number
+    default = 0
+}
+
+
 variable "database_count" {
     type = number
     default = 0

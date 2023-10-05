@@ -35,6 +35,24 @@ resource "openstack_compute_instance_v2" "controller" {
   }
 }
 
+resource "openstack_compute_instance_v2" "eda" {
+  name = "${var.username}_aap_${var.aap_version}_eda_${count.index + 1}"
+  image_name = "${var.os_release}"
+  flavor_name = "g.memory.medium"
+  count = var.eda_count
+
+  key_pair = "${var.username}-rsa"
+  security_groups = ["default"]
+
+  network {
+      name = "provider_net_shared_3"
+  }
+
+  metadata = {
+    description = "EDA Server"
+  }
+}
+
 resource "openstack_compute_instance_v2" "database" {
   name = "${var.username}_aap_${var.aap_version}_database_${count.index + 1}"
   image_name = "${var.os_release}"

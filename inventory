@@ -9,6 +9,11 @@
 [controller]
 
 ##
+## AAP EDA Server
+##
+[eda]
+
+##
 ## AAP Database
 ##
 [database]
