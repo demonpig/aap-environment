@@ -7,13 +7,13 @@ variable "username" {
 
 variable "os_release" {
     type = string
-    default = "RHEL-8.6.0-x86_64-released"
+    default = "RHEL-9.0.0-x86_64-released"
 }
 
 # This is to allow a managed node to be something different
 variable "os_release_managed" {
     type = string
-    default = "RHEL-8.6.0-x86_64-released"
+    default = "RHEL-9.0.0-x86_64-released"
 }
 
 variable "os_release_windows" {
@@ -37,7 +37,6 @@ variable "eda_count" {
     type = number
     default = 0
 }
-
 
 variable "database_count" {
     type = number
