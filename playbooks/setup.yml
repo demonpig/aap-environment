@@ -104,6 +104,12 @@
         state: latest
         update_cache: true
 
+    - name: Install glibc-langpack-en on RHEL 9
+      when: ansible_distribution_major_version is version(version='9', operator='>=')
+      ansible.builtin.dnf:
+        name: glibc-langpack-en
+        state: present
+
     - name: Reboot systems
       timeout: "{{ task_timeout }}"
       ansible.builtin.reboot:
