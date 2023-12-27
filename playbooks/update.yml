@@ -13,7 +13,7 @@
         
     - name: Check if reboot is required
       register: needs_restarting
-      changed_when: true
+      changed_when: false
       failed_when: needs_restarting.rc not in [0,1]
       ansible.builtin.command: dnf needs-restarting -r
       
