@@ -1,0 +1,23 @@
+---
+
+- name: Update / Reboot RHEL-like Servers
+  hosts: all
+  gather_facts: false
+  
+  tasks:
+    - name: Update all packages
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+        update_cache: true
+        
+    - name: Check if reboot is required
+      register: needs_restarting
+      changed_when: true
+      failed_when: needs_restarting.rc not in [0,1]
+      ansible.builtin.command: dnf needs-restarting -r
+      
+    - name: Reboot the server
+      when: needs_restarting.rc == 1
+      ansible.builtin.reboot:
+        test_command: echo hello
