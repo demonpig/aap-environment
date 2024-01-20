@@ -1,0 +1,22 @@
+---
+
+- name: Remove EPEL
+  ansible.builtin.dnf:
+    name: epel-release.noarch
+    state: absent
+
+# Kick this task off and we will come back to it later
+- name: Register RHEL VMs
+  no_log: true
+  timeout: "{{ rhel_timeout }}"
+  community.general.redhat_subscription:
+    state: present
+    username: "{{ rhel_username }}"
+    password: "{{ rhel_password }}"
+    auto_attach: true
+
+- name: Install glibc-langpack-en on RHEL 9
+  when: ansible_distribution_major_version is version(version='9', operator='>=')
+  ansible.builtin.dnf:
+    name: glibc-langpack-en
+    state: present

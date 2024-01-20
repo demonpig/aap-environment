@@ -1,0 +1,6 @@
+---
+
+rhel_timeout: 600
+
+rhel_username: ""
+rhel_password: ""

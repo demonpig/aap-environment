@@ -8,19 +8,18 @@
       ansible.builtin.group_by:
         key: os_{{ ansible_distribution }}
 
-- name: Initial Setup
+- name: Setting up user accounts
+  hosts: all:!windows
+  gather_facts: false
+  roles:
+    - role: users
+
+- name: Server Setup
   hosts: all:!windows
   gather_facts: false
 
-  handlers:
-    - name: restart sshd
-      ansible.builtin.service:
-        name: sshd
-        state: restarted
-        enabled: true
-      become: true
-      become_user: root
-      when: ansible_os_family == "RedHat"
+  vars_files:
+    - ~/.ansible/secrets.yml
 
   tasks:
     - name: Ping server to verify connection
@@ -44,73 +43,30 @@
         create: true
         backup: true
 
-    - name: Allow password authentication for ssh
-      become: true
-      become_user: root
-      loop:
-        - line: 'PasswordAuthentication no'
-          state: absent
-        - line: 'PasswordAuthentication yes'
-          state: present
-      notify: restart sshd
-      ansible.builtin.lineinfile:
-        path: /etc/ssh/sshd_config
-        line: "{{ item.line }}"
-        state: "{{ item.state }}"
-        owner: root
-        group: root
-        mode: 0600
+    - name: Hardening Server
+      block:
+        - name: SSH Hardening
+          ansible.builtin.include_role:
+            name: devsec.hardening.ssh_hardening
 
-# BEGIN: Red Hat
-# This playbook is used to register all Red Hat Enterprise Linux (RHEL) systems.
-- name: Red Hat Enterprise Linux Server Registration / Setup
-  hosts: os_RedHat
-  gather_facts: false
-  become: true
-  become_user: root
+        - name: Remove any root user password
+          become: true
+          changed_when: true
+          ansible.builtin.command:
+            cmd: passwd -d root
 
-  vars_files:
-    - ~/.ansible/secrets.yml
+    - name: RHEL Registration
+      when: inventory_hostname in groups['os_RedHat']
+      ansible.builtin.include_role:
+        name: rhel_registration
 
-  handlers:
-    - name: restart sshd
-      ansible.builtin.service:
-        name: sshd
-        state: restarted
+    - name: Apply any updates to the server
+      ansible.builtin.include_role:
+        name: patching
 
-  vars:
-    task_timeout: 600 # 10 minutes
-
-  tasks:
-    - name: Remove EPEL
-      ansible.builtin.dnf:
-        name: epel-release.noarch
-        state: absent
-
-    # Kick this task off and we will come back to it later
-    - name: Register RHEL VMs
-      no_log: true
-      timeout: "{{ task_timeout }}"
-      community.general.redhat_subscription:
-        state: present
-        username: "{{ rhel_username }}"
-        password: "{{ rhel_password }}"
-        auto_attach: true
-
-    - name: Upgrade system
-      timeout: "{{ task_timeout }}"
-      ansible.builtin.yum:
-        name: "*"
-        state: latest
-        update_cache: true
-
-    - name: Install glibc-langpack-en on RHEL 9
-      when: ansible_distribution_major_version is version(version='9', operator='>=')
-      ansible.builtin.dnf:
-        name: glibc-langpack-en
-        state: present
-
-    - name: Reboot systems
-      timeout: "{{ task_timeout }}"
+    - name: Reboot the server (if required)
+      when:
+        - patching_restart_server is defined
+        - patching_restart_server
       ansible.builtin.reboot:
-# END
+        test_command: ping -c 1 1.1.1.1
