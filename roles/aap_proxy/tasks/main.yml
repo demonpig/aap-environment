@@ -1,0 +1,42 @@
+---
+
+- name: Initial setup for NGINX
+  ansible.builtin.include_tasks: nginx.yml
+
+- name: Deploy Automation Controller Configuration
+  when: aap_proxy_deploy_controller
+  block:
+    - name: Create directory for tower ssl cert/key
+      ansible.builtin.file:
+        path: /etc/tower
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Upload the ssl cert/key
+      loop:
+        - path: /etc/tower/tower.cert
+          content: "{{ aap_proxy_ssl_cert }}"
+          mode: '0644'
+        - path: /etc/tower/tower.key
+          content: "{{ aap_proxy_ssl_key }}"
+          mode: '0640'
+        - path: /etc/pki/ca-trust/source/anchors/ansible-automation-platform-managed-ca-cert.crt
+          content: "{{ aap_proxy_ssl_ca_cert }}"
+          mode: '0644'
+      ansible.builtin.copy:
+        content: "{{ item.content }}"
+        dest: "{{ item.path }}"
+        owner: root
+        group: root
+        mode: "{{ item.mode }}"
+
+    - name: Install controller proxy config
+      notify: restart nginx
+      ansible.builtin.template:
+        src: automation-controller.conf.j2
+        dest: /etc/nginx/conf.d/automation-controller.nginx.conf
+        owner: root
+        group: root
+        mode: '0644'

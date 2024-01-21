@@ -1,0 +1,38 @@
+---
+
+- name: Ansible Automation Platform Proxy
+  hosts: all
+  gather_facts: true
+
+  vars:
+    deploy_controller_proxy: false
+
+  tasks:
+    - name: Get Automation Controller certificates and keys
+      delegate_to: "{{ groups['controller'][0] }}"
+      run_once: true
+      block:
+        - name: Slurp /etc/tower/tower.cert from Automation Controller
+          register: tower_cert
+          ansible.builtin.slurp:
+            path: /etc/tower/tower.cert
+
+        - name: Slurp /etc/tower/tower.key from Automation Controller
+          register: tower_key
+          ansible.builtin.slurp:
+            path: /etc/tower/tower.key
+
+        - name: Slurp /etc/tower/tower.key from Automation Controller
+          register: tower_ca
+          ansible.builtin.slurp:
+            path: /etc/pki/ca-trust/source/anchors/ansible-automation-platform-managed-ca-cert.crt
+
+    - name: Setup Automation Controller Proxy
+      when: inventory_hostname in groups['managed']
+      vars:
+        aap_proxy_deploy_controller: true
+        aap_proxy_ssl_cert: "{{ tower_cert['content'] | b64decode }}"
+        aap_proxy_ssl_key: "{{ tower_key['content'] | b64decode }}"
+        aap_proxy_ssl_ca_cert: "{{ tower_ca['content'] | b64decode }}"
+      ansible.builtin.include_role:
+        name: aap_proxy

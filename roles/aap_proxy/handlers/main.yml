@@ -1,0 +1,13 @@
+---
+
+- name: test nginx config
+  changed_when: false
+  listen: restart nginx
+  ansible.builtin.command: nginx -T
+
+- name: restarting nginx service
+  listen: restart nginx
+  ansible.builtin.service:
+    name: nginx
+    state: restarted
+    enabled: true

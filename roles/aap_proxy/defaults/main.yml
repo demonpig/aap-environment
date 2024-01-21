@@ -1,0 +1,7 @@
+---
+
+aap_proxy_deploy_controller: false
+
+aap_proxy_ssl_cert: ""
+aap_proxy_ssl_key: ""
+aap_proxy_ssl_ca_cert: ""
