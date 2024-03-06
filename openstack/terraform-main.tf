@@ -143,6 +143,24 @@ resource "openstack_compute_instance_v2" "managed" {
   }
 }
 
+resource "openstack_compute_instance_v2" "managed_rhel8" {
+  name = "${var.username}_aap_${var.aap_version}_managed_rhel8_${count.index + 1}"
+  image_name = "RHEL-8.6.0-x86_64-released"
+  flavor_name = "m1.medium"
+  count = var.managed_node_count
+
+  key_pair = "${var.username}-rsa"
+  security_groups = ["default"]
+
+  network {
+      name = "provider_net_shared_3"
+  }
+
+  metadata = {
+    description = "Managed System (RHEL 8)"
+  }
+}
+
 resource "openstack_compute_instance_v2" "windows" {
   name = "${var.username}_aap_${var.aap_version}_windows_${count.index + 1}"
   image_name = "${var.os_release_windows}"
