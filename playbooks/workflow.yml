@@ -1,0 +1,184 @@
+---
+
+- name: Get Automation Controllers from Inventory
+  hosts: controller
+  gather_facts: false
+  tasks:
+    - name: Grouping hosts by distribution
+      when: inventory_hostname == groups['controller'][0]
+      ansible.builtin.group_by:
+        key: primary_controller
+
+- name: AAP Controller Configuration
+  hosts: primary_controller
+  gather_facts: false
+  become: false
+
+  module_defaults:
+    group/awx.awx.controller:
+      controller_host: "https://127.0.0.1"
+      controller_username: admin
+      controller_password: "{{ admin_password | default('admin') }}"
+      validate_certs: false
+
+  tasks:
+    - name: Create parent workflow
+      awx.awx.workflow_job_template:
+        name: parent-workflow
+        organization: Default
+        allow_simultaneous: true
+
+    - name: Create child 1 workflow
+      awx.awx.workflow_job_template:
+        name: child-workflow-1
+        organization: Default
+        allow_simultaneous: true
+        workflow_nodes:
+          - identifier: node101
+            unified_job_template:
+              name: Long
+              type: job_template
+            related:
+              always_nodes:
+                - identifier: node102
+          - identifier: node102
+            unified_job_template:
+              name: Long
+              type: job_template
+            related:
+              always_nodes:
+                - identifier: node103
+          - identifier: node103
+            unified_job_template:
+              name: Long
+              type: job_template
+
+    - name: Create child 1 workflow
+      awx.awx.workflow_job_template:
+        name: child-workflow-2
+        organization: Default
+        allow_simultaneous: true
+        workflow_nodes:
+          - identifier: node101
+            unified_job_template:
+              name: Long
+              type: job_template
+            related:
+              always_nodes:
+                - identifier: node102
+          - identifier: node102
+            unified_job_template:
+              name: Long
+              type: job_template
+            related:
+              always_nodes:
+                - identifier: node103
+          - identifier: node103
+            unified_job_template:
+              name: Long
+              type: job_template
+
+    - name: Create child 1 workflow
+      awx.awx.workflow_job_template:
+        name: child-workflow-3
+        organization: Default
+        allow_simultaneous: true
+        workflow_nodes:
+          - identifier: node101
+            unified_job_template:
+              name: Long
+              type: job_template
+            related:
+              always_nodes:
+                - identifier: node102
+          - identifier: node102
+            unified_job_template:
+              name: Long
+              type: job_template
+            related:
+              always_nodes:
+                - identifier: node103
+          - identifier: node103
+            unified_job_template:
+              name: Long
+              type: job_template
+
+    - name: Create child 1 workflow
+      awx.awx.workflow_job_template:
+        name: child-workflow-4
+        organization: Default
+        allow_simultaneous: true
+        workflow_nodes:
+          - identifier: node101
+            unified_job_template:
+              name: Long
+              type: job_template
+            related:
+              always_nodes:
+                - identifier: node102
+          - identifier: node102
+            unified_job_template:
+              name: Long
+              type: job_template
+            related:
+              always_nodes:
+                - identifier: node103
+          - identifier: node103
+            unified_job_template:
+              name: Long
+              type: job_template
+
+    - name: Connect 'em all
+      awx.awx.workflow_job_template:
+        name: parent-workflow
+        organization: Default
+        allow_simultaneous: true
+        workflow_nodes:
+        workflow_nodes:
+          - identifier: node101-1
+            unified_job_template:
+              name: child-workflow-1
+              type: workflow_job_template
+            related:
+              always_nodes:
+                - identifier: node102
+          - identifier: node101-2
+            unified_job_template:
+              name: child-workflow-1
+              type: workflow_job_template
+            related:
+              always_nodes:
+                - identifier: node102
+          - identifier: node101-3
+            unified_job_template:
+              name: child-workflow-3
+              type: workflow_job_template
+            related:
+              always_nodes:
+                - identifier: node102
+          - identifier: node101-4
+            unified_job_template:
+              name: child-workflow-4
+              type: workflow_job_template
+            related:
+              always_nodes:
+                - identifier: node102
+          - identifier: node102
+            unified_job_template:
+              name: child-workflow-2
+              type: workflow_job_template
+            related:
+              always_nodes:
+                - identifier: node103
+          - identifier: node103
+            unified_job_template:
+              name: child-workflow-3
+              type: workflow_job_template
+            related:
+              always_nodes:
+                - identifier: node104
+          - identifier: node104
+            unified_job_template:
+              name: child-workflow-4
+              type: workflow_job_template
+    
