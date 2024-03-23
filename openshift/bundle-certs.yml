@@ -7,7 +7,7 @@ metadata:
 stringData:
   # These are public certificates pulled from a lab environment and various public CAs.
   # DO NOT USE THESE FOR PRODUCTION PURPOSES.
-  bundle-ca.crt: >
+  bundle-ca.crt: |
     -----BEGIN CERTIFICATE-----
     MIIFmDCCA4CgAwIBAgIUBkp6UV5HkO+lqXTT8pGml/z00nMwDQYJKoZIhvcNAQEL
     BQAwZDELMAkGA1UEBhMCVVMxLzAtBgNVBAoMJkFuc2libGUgQXV0b21hdGlvbiBQ
@@ -98,7 +98,7 @@ stringData:
     tL4ndQavEi51mI38AjEAi/V3bNTIZargCyzuFJ0nN6T5U6VR5CmD1/iQMVtCnwr1
     /q4AaOeMSQ+2b1tbFfLn
     -----END CERTIFICATE-----
-  ldap-ca.crt: >
+  ldap-ca.crt: |
     -----BEGIN CERTIFICATE-----
     MIIFmDCCA4CgAwIBAgIUBkp6UV5HkO+lqXTT8pGml/z00nMwDQYJKoZIhvcNAQEL
     BQAwZDELMAkGA1UEBhMCVVMxLzAtBgNVBAoMJkFuc2libGUgQXV0b21hdGlvbiBQ
