@@ -1,0 +1,13 @@
+---
+
+postgres_port: 5432
+
+postgres_max_connections: 1024
+
+postgres_debug: false
+
+postgres_user: awx
+
+postgres_password: admin
+
+postgres_database: awx

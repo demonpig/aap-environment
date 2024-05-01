@@ -1,0 +1,74 @@
+---
+
+- name: postgres | Get role variables
+  ansible.builtin.include_vars: main.yml
+
+- name: postgres | Calculate PostgreSQL resource usage
+  ansible.builtin.set_fact:
+    postgres_shared_memory_size: "{{ (ansible_memtotal_mb * 0.3) | int }}"
+    postgres_work_mem: "{{ (ansible_memtotal_mb * 0.03) | int }}"
+    postgres_maintenance_work_mem: "{{ (ansible_memtotal_mb * 0.04) | int }}"
+
+- name: postgres | Install packages
+  ansible.builtin.dnf:
+    name: "{{ postgres_packages }}"
+    state: present
+
+- name: postgres | Check if database has been initialized
+  register: postgres_init_file
+  ansible.builtin.stat:
+    path: /var/lib/pgsql/.initialized
+
+- name: postgres | First Initialization
+  when: not postgres_init_file.stat.exists
+  block:
+    - name: postgres | Initialize Database
+      become: true
+      ansible.builtin.command: /usr/bin/postgresql-setup --initdb
+
+    - name: Create initialized file
+      ansible.builtin.file:
+        path: /var/lib/pgsql/.initialized
+        state: touch
+        owner: postgres
+        group: postgres
+        mode: '0600'
+
+- name: postgres | Install configuration files
+  become: true
+  register: _postgres_conf_changes
+  loop:
+    - src: pg_hba.conf.j2
+      dest: /var/lib/pgsql/data/pg_hba.conf
+    - src: postgresql.conf.j2
+      dest: /var/lib/pgsql/data/postgresql.conf
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: postgres
+    group: postgres
+    mode: '0600'
+
+  # This task will restart the service when changes are made to the configuration
+- name: postgres | Start service
+  ansible.builtin.systemd_service:
+    name: postgresql.service
+    state: "{{ _postgres_conf_changes.changed | ternary('restarted', 'started') }}"
+    enabled: true
+
+- name: postgres | Setup database
+  become: true
+  become_user: postgres
+  block:
+    - name: postgres | Create database
+      community.postgresql.postgresql_db:
+        name: "{{ postgres_database }}"
+        state: present
+
+    - name: postgres | Create user
+      community.postgresql.postgresql_user:
+        db: "{{ postgres_database }}"
+        name: "{{ postgres_user }}"
+        password: "{{ postgres_password }}"
+      environment:
+        PGOPTIONS: "-c password_encryption=scram-sha-256"
