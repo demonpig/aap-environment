@@ -1,11 +1,14 @@
 # Define required providers
 
 terraform {
-required_version = ">= 0.14.0"
+  # Version of terraform cli to use within this project
+  required_version = ">= 0.14.0"
+
+  # Version of providers
   required_providers {
     openstack = {
       source  = "terraform-provider-openstack/openstack"
-      version = "~> 1.35.0"
+      version = "~> 1.53.0"
     }
   }
 }
@@ -25,7 +28,7 @@ resource "openstack_compute_instance_v2" "controller" {
 
   key_pair = "${var.username}-rsa"
   security_groups = ["default"]
-  
+
   network {
       name = "provider_net_shared_3"
   }
@@ -61,7 +64,7 @@ resource "openstack_compute_instance_v2" "database" {
 
   key_pair = "${var.username}-rsa"
   security_groups = ["default"]
-  
+
   network {
       name = "provider_net_shared_3"
   }
@@ -79,7 +82,7 @@ resource "openstack_compute_instance_v2" "automation_hub" {
 
   key_pair = "${var.username}-rsa"
   security_groups = ["default"]
-  
+
   network {
       name = "provider_net_shared_3"
   }
@@ -97,7 +100,7 @@ resource "openstack_compute_instance_v2" "execution_node" {
 
   key_pair = "${var.username}-rsa"
   security_groups = ["default"]
-  
+
   network {
       name = "provider_net_shared_3"
   }
