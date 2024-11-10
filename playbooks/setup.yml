@@ -1,22 +1,85 @@
 ---
 
-- name: Group hosts based on distribution
-  hosts: all
+- name: Grouping Hosts
+  hosts: all:!windows
+  gather_facts: false
+
+  tags:
+    - always
+
   tasks:
-    - name: Grouping hosts by distribution
-      tags: always
+    - name: Gather distribution facts
+      ansible.builtin.setup:
+        gather_subset: ['!all']
+        filter:
+          - distribution
+          - distribution_major_version
+
+    - name: Group hosts by distribution
       ansible.builtin.group_by:
-        key: os_{{ ansible_distribution }}
+        key: os_{{ ansible_distribution | lower }}
 
-- name: Setting up user accounts
+    - name: Group hosts by distribution and major_version
+      ansible.builtin.group_by:
+        key: os_{{ ansible_distribution | lower }}_{{ ansible_distribution_major_version }}
+
+
+- name: RHEL Registration
+  hosts: os_redhat_8:os_redhat_9
+  gather_facts: false
+
+  tags:
+    - register
+    - registration
+    - patching
+
+  vars:
+    register_timeout: 600
+
+  vars_files:
+    - ~/.ansible/secrets.yml
+
+  tasks:
+    - name: Remove EPEL
+      ansible.builtin.dnf:
+        name: epel-release.noarch
+        state: absent
+
+    # Kick this task off and we will come back to it later
+    - name: Register RHEL Servers
+      block:
+      - name: Register via subscription-manager x1
+        no_log: "{{ nolog | default(True) }}"
+        timeout: "{{ register_timeout }}"
+        community.general.redhat_subscription:
+          state: present
+          username: "{{ rhel_username }}"
+          password: "{{ rhel_password }}"
+          auto_attach: true
+      rescue:
+        - name: Retry register via subscription-manager x2
+          no_log: "{{ nolog | default(True) }}"
+          timeout: "{{ register_timeout }}"
+          community.general.redhat_subscription:
+            state: present
+            username: "{{ rhel_username }}"
+            password: "{{ rhel_password }}"
+            auto_attach: true
+
+    - name: Install glibc-langpack-en on RHEL 9
+      when: ansible_distribution_major_version is version(version='9', operator='>=')
+      ansible.builtin.dnf:
+        name: glibc-langpack-en
+        state: present
+
+
+- name: Server Configuration
   hosts: all:!windows
   gather_facts: false
-  roles:
-    - role: users
+  strategy: "{{ pb_strategy | default('free') }}"
 
-- name: Server Setup
-  hosts: all:!windows
-  gather_facts: false
+  tags:
+    - server_config
 
   vars_files:
     - ~/.ansible/secrets.yml
@@ -25,16 +88,22 @@
     - name: Ping server to verify connection
       ansible.builtin.ping:
 
-    - name: Gather IP information on host
-      ansible.builtin.setup:
+    - name: Gathering facts about the hosts
+      block:
+        - name: Gather basic facts
+          ansible.builtin.setup:
+
+        - name: Gather package facts
+          ansible.builtin.package_facts:
+
+        - name: Gather service facts
+          ansible.builtin.service_facts:
 
     - name: Configure /etc/hosts so all hosts are know the FQDN of each other
-      become: true
-      become_user: root
       ansible.builtin.blockinfile:
         block: |
           {% for host in play_hosts %}
-          {{ hostvars[host]['ansible_default_ipv4']['address'] }} {{ host }}
+          {{ hostvars[host]['ansible_default_ipv4']['address'] }} {{ host }} {{ host | replace('.local', '') }}
           {% endfor %}
         dest: /etc/hosts
         owner: root
@@ -43,11 +112,31 @@
         create: true
         backup: true
 
+    # These are only lab environments so no need to panic
+    - name: Set cloud-user password
+      when: cloud_user_password is defined
+      vars:
+        user_name: cloud-user
+        user_password: "{{ cloud_user_password }}"
+      ansible.builtin.include_role:
+        name: local_user
+        tasks_from: update_password
+        apply:
+          tags:
+            - server_config
+
     - name: Hardening Server
       block:
         - name: SSH Hardening
+          vars:
+            sshd_authenticationmethods: "publickey password"
+            ssh_server_password_login: true
+            ssh_client_password_login: true
           ansible.builtin.include_role:
             name: devsec.hardening.ssh_hardening
+            apply:
+              tags:
+                - server_config
 
         - name: Remove any root user password
           become: true
@@ -55,18 +144,58 @@
           ansible.builtin.command:
             cmd: passwd -d root
 
-    - name: RHEL Registration
-      when: inventory_hostname in groups['os_RedHat']
-      ansible.builtin.include_role:
-        name: rhel_registration
 
-    - name: Apply any updates to the server
-      ansible.builtin.include_role:
-        name: patching
+- name: Server Patching
+  hosts: os_redhat
+  gather_facts: false
+  strategy: "{{ pb_strategy | default('free') }}"
+
+  tags:
+    - patching
+
+  vars:
+    patching_timeout: 600
+
+  tasks:
+    - name: Clean package cache
+      changed_when: false
+      ansible.builtin.command: dnf clean all
+
+    - name: Remove DNF cache directory
+      ansible.builtin.file:
+        path: /var/cache/dnf
+        state: absent
+
+    - name: Update Packages Block
+      block:
+        - name: Update all packages
+          timeout: "{{ patching_timeout }}"
+          ansible.builtin.dnf:
+            name: "*"
+            state: latest
+            update_cache: true
+      rescue:
+        # Even if the above two tasks fail, I still want ansible to succeed. I really don't
+        # want the system to be caught in a bad state. So I will need to do some experimentation
+        # to see if there is a way to undo the above upgrade in case there is a failure
+        - name: Clean package cache
+          changed_when: false
+          ansible.builtin.command: dnf clean all
+
+        - name: Remove DNF cache directory
+          ansible.builtin.file:
+            path: /var/cache/dnf
+            state: absent
+
+    # 1 = Server needs reboot
+    # 0 = Server does not need a reboot
+    - name: Check if system needs a reboot
+      register: _patching_requires_reboot
+      changed_when: false
+      failed_when: false
+      ansible.builtin.command: dnf needs-restarting -r
 
     - name: Reboot the server (if required)
-      when:
-        - patching_restart_server is defined
-        - patching_restart_server
+      when: _patching_requires_reboot.rc == 1
       ansible.builtin.reboot:
         test_command: ping -c 1 1.1.1.1

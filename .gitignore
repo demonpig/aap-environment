@@ -18,6 +18,8 @@ ansible-automation-platform-setup*
 *pass*
 *password*
 *.txt
+!update_password.yml
+!requirements.txt
 
 # Exclude all binaries
 *.bin

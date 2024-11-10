@@ -1,0 +1,44 @@
+---
+
+- name: Create user account's main group
+  when: user_main_group is defined
+  ansible.builtin.group:
+    name: "{{ user_main_group }}"
+    state: present
+
+- name: Create user account (password locked)
+  ansible.builtin.user:
+    name: "{{ user_name }}"
+    group: "{{ user_main_group | default(omit, true) }}"
+    groups: "{{ user_groups | default(omit, true) }}"
+    home: "{{ user_homedir | defualt(omit, true) }}"
+    system: "{{ user_system_account | default(omit, true) }}"
+    state: present
+    password: '!'
+    update_password: on_create
+
+- name: Manage SSH keys for user account
+  when: user_sshkey is defined
+  ansible.posix.authorized_key:
+    user: "{{ user_name }}"
+    key: "{{ user_sshkey }}"
+    exclusive: "{{ user_sshkey_exclusive | default(true) }}"
+    state: "{{ 'present' if user_sshkey_present else 'absent' }}"
+
+- name: Lingering mode for user account
+  block:
+    # This is just to make sure that we can check the logind service in the
+    # next task
+    - name: Check services
+      timeout: 15
+      ansible.builtin.service_facts:
+
+    - name: Enable lingering for user account
+      when: ansible_facts['services']['systemd-logind.service']['state'] == "running" | default(False)
+      vars:
+        linger_cmd: "{{ 'enable-linger' if user_enable_linger else 'disable-linger' }}"
+        linger_file: /var/lib/systemd/linger/{{ item.name }}
+      ansible.builtin.command:
+        cmd: loginctl {{ linger_cmd }} {{ user_name }}
+        creates: "{{ linger_file if user_enable_linger else omit }}"
+        removes: "{{ linger_file if not user_enable_linger else omit }}"

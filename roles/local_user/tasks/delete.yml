@@ -1,0 +1,21 @@
+---
+
+- name: delete | Delete user account
+  ansible.builtin.user:
+    name: "{{ user_name }}"
+    state: absent
+    remove: true
+
+- name: delete | Lingering mode for user account
+  block:
+    # This is just to make sure that we can check the logind service in the
+    # next task
+    - name: delete | Check services
+      timeout: 15
+      ansible.builtin.service_facts:
+
+    - name: delete | Disable lingering for user account
+      when: ansible_facts['services']['systemd-logind.service']['state'] == "running" | default(False)
+      ansible.builtin.command:
+        cmd: loginctl disable-linger {{ user_name }}
+        removes: "/var/lib/systemd/linger/{{ item.name }}"
