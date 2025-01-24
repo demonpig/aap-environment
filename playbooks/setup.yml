@@ -53,8 +53,9 @@
         timeout: "{{ register_timeout }}"
         community.general.redhat_subscription:
           state: present
-          username: "{{ rhel_username }}"
-          password: "{{ rhel_password }}"
+          username: "{{ rhel_username | default(omit) }}"
+          password: "{{ rhel_password | default(omit) }}"
+          token: "{{ rhel_token | default(omit) }}"
           auto_attach: true
       rescue:
         - name: Retry register via subscription-manager x2
@@ -62,8 +63,9 @@
           timeout: "{{ register_timeout }}"
           community.general.redhat_subscription:
             state: present
-            username: "{{ rhel_username }}"
-            password: "{{ rhel_password }}"
+            username: "{{ rhel_username | default(omit) }}"
+            password: "{{ rhel_password | default(omit) }}"
+            token: "{{ rhel_token | default(omit) }}"
             auto_attach: true
 
     - name: Install glibc-langpack-en on RHEL 9
