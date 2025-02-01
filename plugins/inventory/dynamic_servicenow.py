@@ -45,13 +45,12 @@ def create_servicenow_instance(name):
       "location": "USA",
       "name": name,
       "os_version": "10.0",
-      "os": "Red Hat",
+      "os": "Linux Red Hat",
       "serial_number": random.randint(1000,9999),
-      "show_description": f"{name} - production",
+      "short_description": f"{name} - production",
       "sys_class_name": "cmdb_ci_linux_server",
       "u_business_identifier": 73,
       "u_business_thing": "Software",
-      "virtual": False,
       "virtual": False,
 
       # ansible specific variables

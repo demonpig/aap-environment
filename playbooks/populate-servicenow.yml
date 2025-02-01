@@ -1,0 +1,34 @@
+---
+
+- name: Populate ServiceNow Instance
+  hosts: all
+  connection: local
+  gather_facts: false
+
+  # environment:
+  #   SN_ACCESS_TOKEN: "{{ lookup('ansible.builtin.env', 'SN_ACCESS_TOKEN') | default(omit, True) }}"
+  #   SN_CLIENT_ID: "{{ lookup('ansible.builtin.env', 'SN_CLIENT_ID') | default(omit, True) }}"
+  #   SN_CLIENT_SECRET: "{{ lookup('ansible.builtin.env', 'SN_CLIENT_SECRET') | default(omit, True) }}"
+  #   SN_GRANT_TYPE: "{{ lookup('ansible.builtin.env', 'SN_GRANT_TYPE') | default(omit, True) }}"
+  #   SN_HOST: "{{ lookup('ansible.builtin.env', 'SN_HOST') | default(omit, True) }}"
+  #   SN_PASSWORD: "{{ lookup('ansible.builtin.env', 'SN_PASSWORD') | default(omit, True) }}"
+  #   SN_REFRESH_TOKEN: "{{ lookup('ansible.builtin.env', 'SN_REFRESH_TOKEN') | default(omit, True) }}"
+  #   SN_TIMEOUT: "{{ lookup('ansible.builtin.env', 'SN_TIMEOUT') | default(omit, True) }}"
+  #   SN_USERNAME: "{{ lookup('ansible.builtin.env', 'SN_USERNAME') | default(omit, True) }}"
+
+  tasks:
+    - name: Add server within ServiceNow
+      servicenow.itsm.configuration_item:
+        environment: "{{ environment }}"
+        name: "{{ name }}"
+        serial_number: "{{ serial_number }}"
+        short_description: "{{ short_description }}"
+        sys_class_name: "{{ sys_class_name }}"
+        other:
+          fqdn: "{{ fqdn}}"
+          location: "{{ location }}"
+          os_version: "{{ os_version }}"
+          os: "{{ os }}"
+          u_business_identifier: "{{ u_business_identifier }}"
+          u_business_thing: "{{ u_business_thing }}"
+          virtual: "{{ virtual }}"
