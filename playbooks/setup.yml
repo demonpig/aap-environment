@@ -57,6 +57,7 @@
           password: "{{ rhel_password | default(omit) }}"
           token: "{{ rhel_token | default(omit) }}"
           auto_attach: true
+          server_insecure: 1
       rescue:
         - name: Retry register via subscription-manager x2
           no_log: "{{ nolog | default(True) }}"
@@ -67,6 +68,7 @@
             password: "{{ rhel_password | default(omit) }}"
             token: "{{ rhel_token | default(omit) }}"
             auto_attach: true
+            server_insecure: 1
 
     - name: Install glibc-langpack-en on RHEL 9
       when: ansible_distribution_major_version is version(version='9', operator='>=')
