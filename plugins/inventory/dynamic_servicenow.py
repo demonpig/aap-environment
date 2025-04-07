@@ -30,6 +30,15 @@ options:
     required: false
     type: integer
     default: 10
+  query:
+    description:
+      - Provides a set of operators for use with filters, condition builders, and encoded queries.
+      - The data type of a field determines what operators are available for it.
+        Refer to the ServiceNow Available Filters Queries documentation at
+        U(https://docs.servicenow.com/bundle/tokyo-platform-user-interface/page/use/common-ui-elements/reference/r_OpAvailableFiltersQueries.html).
+      - Mutually exclusive with C(sysparm_query).
+    type: list
+    elements: dict
 """
 
 import random
@@ -40,17 +49,51 @@ from ansible.plugins.inventory import BaseInventoryPlugin
 
 def create_servicenow_instance(name):
     return {
+      "attestation_status": "Not Yet Reviewed",
+      "attested": False,
+      "category": "Hardware",
+      "classification": "Production",
+      "comments": "Theme: RTS",
+      "cost_cc": "USD",
+      "default_gateway": "169.0.0.1",
+      "dns_domain": "example.com",
       "environment": 'production',
+      "environment": "requirements",
+      "firewall_status": "Intranet",
       "fqdn": f"{name}.example.com",
+      "hardware_status": "retired",
+      "host_name": name,
+      "install_status": "7",
+      "internet_facing": False,
       "location": "USA",
+      "monitor": False,
       "name": name,
+      "operational_status": "6",
       "os_version": "10.0",
       "os": "Linux Red Hat",
       "serial_number": random.randint(1000,9999),
       "short_description": f"{name} - production",
+      "skip_sync": False,
+      "subcategory": "Computer",
       "sys_class_name": "cmdb_ci_linux_server",
+      "sys_class_path": "/!!/!2/!(/!!/!0",
+      "sys_domain_path": "/",
+      "sys_mod_count": "6",
+      "u_actual_retirement_date": "2000-01-01",
       "u_business_identifier": 73,
       "u_business_thing": "Software",
+      "u_discovery_exception": "technology limitation",
+      "u_evacuated": "No",
+      "u_exempt": False,
+      "u_ip_numeric_value": "127127127127",
+      "u_is_modifiable": False,
+      "u_owned_by_override": False,
+      "u_protected": False,
+      "u_reboot_required": False,
+      "u_related_cis_in_legal_hold": False,
+      "u_related_to_atc": False,
+      "u_soc_1_rebates": "Not Assessed",
+      "u_sox_soc": False,
       "virtual": False,
 
       # ansible specific variables
@@ -72,6 +115,11 @@ class InventoryModule(BaseInventoryPlugin):
         # call base method to ensure properties are available for use with other helper methods
         super(InventoryModule, self).parse(inventory, loader, path, cache)
         self._read_config_data(path=path)
+
+        for query in self.get_option('query'):
+          for k, v in query.items():
+              self.display.v(k)
+              self.display.v(v)
 
         count = self.get_option('count')
         self.display.vv(f"Inventory Count: {count}")

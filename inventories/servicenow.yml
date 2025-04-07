@@ -2,4 +2,7 @@
 
 plugin: dynamic_servicenow
 
-count: 100
+count: 1
+
+query:
+  - test: = "123"

@@ -4,6 +4,8 @@
   hosts: all
   connection: local
   gather_facts: false
+  strategy: host_pinned
+  serial: "{{ count | default(100) }}"
 
   # environment:
   #   SN_ACCESS_TOKEN: "{{ lookup('ansible.builtin.env', 'SN_ACCESS_TOKEN') | default(omit, True) }}"
