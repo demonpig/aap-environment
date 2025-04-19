@@ -1,0 +1,43 @@
+---
+
+###
+### Custom Credential Type
+###
+
+credential_types: []
+
+###
+### Required Credentials
+###
+
+credentials: []
+
+###
+### Required inventories
+###
+
+inventories: []
+
+###
+### Requires hosts for inventories
+###
+
+inventory_hosts: []
+
+###
+### Required projects
+###
+
+projects: []
+
+###
+### Required job templates
+###
+
+job_templates: []
+
+###
+### Required workflow templates
+###
+
+workflow_job_templates: []

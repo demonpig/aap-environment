@@ -1,0 +1,13 @@
+#!/bin/sh
+
+read -p "CONTROLLER_HOST: " CONTROLLER_HOST
+read -p "CONTROLLER_USERNAME: " CONTROLLER_USERNAME
+read -p "CONTROLLER_PASSWORD: " CONTROLLER_PASSWORD
+
+echo ""
+echo "# Copy-paste the following commands"
+echo ""
+echo "export CONTROLLER_HOST='${CONTROLLER_HOST}'"
+echo "export CONTROLLER_USERNAME='${CONTROLLER_USERNAME}'"
+echo "export CONTROLLER_PASSWORD='${CONTROLLER_PASSWORD}'"
+echo "export CONTROLLER_VERIFY_SSL=false"

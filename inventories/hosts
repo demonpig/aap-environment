@@ -15,7 +15,8 @@
 
 [execution_nodes]
 
-[managed]
+[local]
+localhost ansible_host=127.0.0.1
 
 ###############################################################################
 
@@ -39,8 +40,24 @@ execution_nodes
 [all:vars]
 ansible_user = cloud-user
 
+# Absolute or relative path to the manifest file. The file must be downloaded
+# to your local workstation or wherever you are running the populate playbook.
+manifest_path = "~/.ansible/manifest.zip"
+
+# Flag to tell the playbook which configuration role to use when configuration
+# AAP. Defaults to using AAP 2.4 configuration roles.
+install_aap25 = false
+
+###############################################################################
+
+# DONT EDIT THE FOLLOWING SECTIONS
+
 [os_redhat_9:vars]
 ansible_python_interpreter = /usr/bin/python3.9
 
 [os_redhat_8:vars]
 ansible_python_interpreter = /usr/libexec/platform-python
+
+[local:vars]
+ansible_connection = local
+ansible_python_interpreter = "{{ ansible_playbook_python }}"

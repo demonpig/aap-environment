@@ -1,0 +1,28 @@
+---
+
+- name: AAP Registration / Configuration
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    configuration_role: 'infra.controller_configuration'
+
+  tasks:
+    - name: Set role_prefix if using the infra.aap_configuration
+      when: install_aap25 | bool
+      ansible.builtin.set_fact:
+        configuration_role: 'infra.aap_configuration'
+        controller_role_prefix: 'controller_'
+
+    - name: Upload manifest through the Controller API
+      ansible.controller.license:
+        manifest: "{{ lookup('pipe', 'readlink -f ' + manifest_path) }}"
+        state: present
+        force: true
+
+    - name: Populate Automation Controller
+      with_fileglob: 'vars/controller/*.yml'
+      loop_control:
+        loop_var: loop_filename
+      ansible.builtin.include_tasks:
+        file: ./tasks/create-resources.yml

@@ -1,0 +1,158 @@
+---
+
+###
+### Custom Credential Type
+###
+
+credential_types:
+
+  - name: Custom OpenStack Credentials
+    description: Credential type used for connecting to OpenStack
+    inputs:
+      fields:
+        - id: _openstack_auth_url
+          label: OpenStack Authentication URL
+          type: string
+
+        - id: _openstack_project_id
+          label: OpenStack Project ID
+          type: string
+
+        - id: _openstack_project_name
+          label: OpenStack Project Name
+          type: string
+
+        - id: _openstack_user_domain
+          label: OpenStack User Domain
+          type: string
+
+        - id: _openstack_credential_id
+          label: OpenStack Application ID
+          type: string
+          secret: true
+
+        - id: _openstack_credential_secret
+          label: OpenStack Application Password
+          type: string
+          secret: true
+
+      required:
+        - _openstack_auth_url
+
+    injectors:
+      extra_vars:
+        openstack_auth_url: !unsafe "{{ _openstack_auth_url }}"
+        openstack_project_id: !unsafe "{{ _openstack_project_id }}"
+        openstack_project_name: !unsafe "{{ _openstack_project_name }}"
+        openstack_user_domain: !unsafe "{{ _openstack_user_domain }}"
+        openstack_credential_id: !unsafe "{{ _openstack_credential_id }}"
+        openstack_credential_secret: !unsafe "{{ _openstack_credential_secret }}"
+
+  - name: Custom Red Hat SSO Credentials
+    description: Credential type used for connecting to Red Hat SSO
+    inputs:
+      fields:
+        - id: _rhsso_token_url
+          label: Red Hat SSO Token URL
+          type: string
+
+        - id: _rhsso_token
+          label: Red Hat SSO Offline Access Token
+          type: string
+          secret: true
+
+      required:
+        - _rhsso_token_url
+
+    injectors:
+      extra_vars:
+        rh_sso_token_url: !unsafe "{{ _rhsso_token_url }}"
+        rh_sso_token: !unsafe "{{ _rhsso_token }}"
+        offline_token: !unsafe "{{ _rhsso_token }}"
+
+###
+### Required Credentials
+###
+
+credentials:
+
+  - name: OpenStack Server
+    organization: Default
+    credential_type: Source Control
+    state: present
+    inputs:
+      username: cloud-user
+      password: cloud-user
+
+###
+### Required inventories
+###
+
+inventories:
+
+  - name: Local
+    organization: Default
+
+###
+### Requires hosts for inventories
+###
+
+inventory_hosts:
+
+  - name: localhost
+    inventory: Local
+    enabled: true
+    variables:
+      ansible_host: 127.0.0.1
+      ansible_connection: local
+      ansible_python_interpreter: !unsafe "{{ ansible_playbook_python }}"
+
+###
+### Required projects
+###
+
+projects:
+
+  - name: Example Project
+    organization: Default
+    scm_url: https://github.com/demonpig/aap-example-project
+    scl_clean: true
+    scm_type: git
+    wait: true
+
+###
+### Required job templates
+###
+
+job_templates:
+
+  - name: Ping
+    job_type: run
+    inventory: Local
+    organization: Default
+    project: Example Project
+    playbook: playbooks/ping.yml
+    allow_simultaneous: true
+
+  - name: Long
+    job_type: run
+    inventory: Local
+    organization: Default
+    project: Example Project
+    playbook: playbooks/long.yml
+    allow_simultaneous: true
+
+  - name: Fail
+    job_type: run
+    inventory: Local
+    organization: Default
+    project: Example Project
+    playbook: playbooks/fail.yml
+    allow_simultaneous: true
+
+
+###
+### Required workflow templates
+###
+
+workflow_job_templates: []

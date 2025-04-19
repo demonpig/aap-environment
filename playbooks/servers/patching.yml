@@ -1,7 +1,7 @@
 ---
 
 - name: Server Patching Playbook
-  hosts: all:!windows
+  hosts: all:!windows:!local
   gather_facts: false
 
   vars:

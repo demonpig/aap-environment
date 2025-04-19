@@ -1,0 +1,61 @@
+---
+
+- name: DEBUG | Print filename being imported
+  ansible.builtin.debug:
+    var: loop_filename
+    verbosity: 2
+
+- name: Import variables
+  ansible.builtin.include_vars:
+    file: "{{ loop_filename }}"
+    hash_behaviour: replace
+
+- name: Configure credential types
+  vars:
+    controller_credential_types: "{{ credential_types }}"
+  when: credential_types | length > 0
+  ansible.builtin.include_role:
+    name: "{{ configuration_role }}.{{ controller_role_prefix | default('') }}credential_types"
+
+- name: Configure credentials
+  vars:
+    controller_credentials: "{{ credentials }}"
+    controller_configuration_credentials_enforce_defaults: false
+  when: credentials | length > 0
+  ansible.builtin.include_role:
+    name: "{{ configuration_role }}.{{ controller_role_prefix | default('') }}credentials"
+
+- name: Configure inventories # noqa var-naming[no-role-prefix]
+  vars:
+    controller_inventories: "{{ inventories }}"
+  when: inventories | length > 0
+  ansible.builtin.include_role:
+    name: "{{ configuration_role }}.{{ controller_role_prefix | default('') }}inventories"
+
+- name: Configure hosts within inventories # noqa var-naming[no-role-prefix]
+  vars:
+    controller_hosts: "{{ inventory_hosts }}"
+  when: inventory_hosts | length > 0
+  ansible.builtin.include_role:
+    name: "{{ configuration_role }}.{{ controller_role_prefix | default('') }}hosts"
+
+- name: Configure projects # noqa var-naming[no-role-prefix]
+  vars:
+    controller_templates: "{{ projects }}"
+  when: projects | length > 0
+  ansible.builtin.include_role:
+    name: "{{ configuration_role }}.{{ controller_role_prefix | default('') }}projects"
+
+- name: Configure job templates # noqa var-naming[no-role-prefix]
+  vars:
+    controller_templates: "{{ job_templates }}"
+  when: job_templates | length > 0
+  ansible.builtin.include_role:
+    name: "{{ configuration_role }}.{{ controller_role_prefix | default('') }}job_templates"
+
+- name: Configure workflow templates # noqa var-naming[no-role-prefix]
+  vars:
+    controller_workflows: "{{ workflow_job_templates }}"
+  when: workflow_job_templates | length > 0
+  ansible.builtin.include_role:
+    name: "{{ configuration_role }}.{{ controller_role_prefix | default('') }}workflow_templates"
