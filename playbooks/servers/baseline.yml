@@ -1,0 +1,80 @@
+---
+
+- name: Server Baseline Configuration Playbook
+  hosts: all:!windows
+  gather_facts: false
+
+  vars:
+    task_timeout: 600
+
+    # local user for logging onto system
+    username: "{{ ansible_user }}"
+    password: "{{ ansible_user }}"
+
+  vars_files:
+    - ~/.ansible/secrets.yml
+
+  tasks:
+    - name: Gather Facts
+      timeout: "{{ task_timeout }}"
+      ansible.builtin.setup:
+
+    - name: Register RHEL Servers
+      when: ansible_distribution | lower == "redhat"
+      block:
+        - name: Register via subscription-manager x1
+          no_log: "{{ nolog | default(True) }}"
+          timeout: "{{ task_timeout }}"
+          community.general.redhat_subscription:
+            state: present
+            username: "{{ rhel_username | default(omit) }}"
+            password: "{{ rhel_password | default(omit) }}"
+            token: "{{ rhel_token | default(omit) }}"
+            auto_attach: true
+            server_insecure: 1
+      rescue:
+        - name: Retry register via subscription-manager x2
+          no_log: "{{ nolog | default(True) }}"
+          timeout: "{{ task_timeout }}"
+          community.general.redhat_subscription:
+            state: present
+            username: "{{ rhel_username | default(omit) }}"
+            password: "{{ rhel_password | default(omit) }}"
+            token: "{{ rhel_token | default(omit) }}"
+            auto_attach: true
+            server_insecure: 1
+
+    - name: Configure /etc/hosts
+      ansible.builtin.blockinfile:
+        block: "{{ lookup('ansible.builtin.template', './templates/etc/hosts.j2') }}"
+        dest: /etc/hosts
+        owner: root
+        group: root
+        mode: 0644
+        backup: true
+
+    - name: Install glibc-langpack-en on RHEL 9
+      when: ansible_distribution_major_version is version(version='9', operator='>=')
+      ansible.builtin.dnf:
+        name: glibc-langpack-en
+        state: present
+
+    - name: Remove the password for root
+      changed_when: true
+      ansible.builtin.command: passwd -d root
+
+    - name: Set password for {{ username }}
+      vars:
+        user_name: "{{ username }}"
+        user_password: "{{ password }}"
+      ansible.builtin.include_role:
+        name: local_user
+        tasks_from: update_password
+
+    - name: Harden the SSHD daemon
+      vars:
+        sshd_authenticationmethods: "publickey password"
+        ssh_server_password_login: true
+        ssh_client_password_login: true
+      ansible.builtin.include_role:
+        name: devsec.hardening.ssh_hardening

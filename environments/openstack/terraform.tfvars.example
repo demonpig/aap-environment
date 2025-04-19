@@ -1,0 +1,33 @@
+# terraform.tfvars
+
+# Specify the username of the SSH key that is stored within OpenStack
+username = ""
+
+# Give a brief description of the environment. Will be used within the
+# name of the instance.
+aap_version = ""
+
+###
+
+# Uncomment the `*_os_release` variable if you want the servers to be RHEL8. They
+# will default to RHEL 9.
+
+controller_count = 1
+#controller_os_release = "RHEL-8.6.0-x86_64-released"
+
+eda_count = 0
+#eda_os_release = "RHEL-8.6.0-x86_64-released"
+
+gateway_count = 0
+#gateway_os_release = "RHEL-8.6.0-x86_64-released"
+
+automation_hub_count = 0
+#automation_hub_os_release = "RHEL-8.6.0-x86_64-released"
+
+database_count = 0
+#database_os_release = "RHEL-8.6.0-x86_64-released"
+
+execution_node_count = 0
+#execution_node_os_release = "RHEL-8.6.0-x86_64-released"
+
+managed_node_count = 0

@@ -1,8 +1,0 @@
----
-
-plugin: dynamic_servicenow
-
-count: 1
-
-query:
-  - test: = "123"

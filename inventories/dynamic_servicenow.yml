@@ -1,0 +1,8 @@
+---
+
+# Uses the ../plugins/inventory/dynamic_servicenow.py inventory plugin. The purpose
+# is to populate a ServiceNow instance with fake data
+
+plugin: dynamic_servicenow
+
+count: 1

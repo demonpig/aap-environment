@@ -3,47 +3,44 @@
 # environment. When adding hosts to the inventory, just make sure they are added to the appropriate group. This inventory is not
 # used for the AAP installer.
 
-##
-## AAP Controllers
-##
-[controller]
+[automationcontroller]
 
-##
-## AAP EDA Server
-##
-[eda]
+[automationedacontroller]
 
-##
-## AAP Database
-##
+[automationgateway]
+
+[automationhub]
+
 [database]
 
-##
-## AAP Automation Hub
-##
-[automation_hub]
+[execution_nodes]
 
-##
-## AAP Execution Node
-##
-[execution_node]
-
-##
-## AAP Managed Linux Hosts
-##
 [managed]
 
-##
-## Windows servers
-##
-[windows]
+###############################################################################
+
+# Instructions
+# Place the above groups in one of the following groups in order to inherit
+# specific variables (see below). Defaults to RHEL 9. You can also place
+# individual hosts within the groups as well.
+
+[os_redhat_9:children]
+automationcontroller
+automationedacontroller
+automationgateway
+automationhub
+database
+execution_nodes
+
+[os_redhat_8:children]
+
+###############################################################################
 
 [all:vars]
 ansible_user = cloud-user
 
-[windows:vars]
-ansible_user = Administrator
-ansible_password = redhat
-ansible_connection = winrm
-ansible_port = 5985
-ansible_winrm_transport = ntlm
+[os_redhat_9:vars]
+ansible_python_interpreter = /usr/bin/python3.9
+
+[os_redhat_8:vars]
+ansible_python_interpreter = /usr/libexec/platform-python
