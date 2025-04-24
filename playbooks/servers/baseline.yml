@@ -53,11 +53,20 @@
         mode: 0644
         backup: true
 
-    - name: Install glibc-langpack-en on RHEL 9
-      when: ansible_distribution_major_version is version(version='9', operator='>=')
+    - name: RHEL | Install glibc-langpack-en
+      when: ansible_os_family | lower == 'redhat' and 
+            ansible_distribution_major_version is version(version='9', operator='>=')
       ansible.builtin.dnf:
         name: glibc-langpack-en
         state: present
+
+    - name: RHEL | Set /tmp to tmpfs
+      when: ansible_os_family | lower == 'redhat' and 
+            ansible_distribution_major_version is version(version='8', operator='>=')
+      ansible.builtin.systemd_service:
+        name: tmp.mount
+        enabled: true
+        masked: no
 
     - name: Remove the password for root
       changed_when: true
