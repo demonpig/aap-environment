@@ -40,7 +40,7 @@
           register: _rh_require_reboot
           ansible.builtin.command: dnf needs-restarting -r
 
-        - name: RHEL | Set fact server needs a reboot
+        - name: RHEL | Set fact server doesn't need a reboot
           when: ansible_os_family | lower == "redhat" and
                 _rh_require_reboot.rc == 0
           ansible.builtin.set_fact:

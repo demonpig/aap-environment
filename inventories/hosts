@@ -20,23 +20,6 @@ localhost ansible_host=127.0.0.1
 
 ###############################################################################
 
-# Instructions
-# Place the above groups in one of the following groups in order to inherit
-# specific variables (see below). Defaults to RHEL 9. You can also place
-# individual hosts within the groups as well.
-
-[os_redhat_9:children]
-automationcontroller
-automationedacontroller
-automationgateway
-automationhub
-database
-execution_nodes
-
-[os_redhat_8:children]
-
-###############################################################################
-
 [all:vars]
 ansible_user = cloud-user
 
@@ -44,20 +27,5 @@ ansible_user = cloud-user
 # to your local workstation or wherever you are running the populate playbook.
 manifest_path = "~/.ansible/manifest.zip"
 
-# Flag to tell the playbook which configuration role to use when configuration
-# AAP. Defaults to using AAP 2.4 configuration roles.
-install_aap25 = false
-
-###############################################################################
-
-# DONT EDIT THE FOLLOWING SECTIONS
-
-[os_redhat_9:vars]
-ansible_python_interpreter = /usr/bin/python3.9
-
-[os_redhat_8:vars]
-ansible_python_interpreter = /usr/libexec/platform-python
-
-[local:vars]
-ansible_connection = local
-ansible_python_interpreter = "{{ ansible_playbook_python }}"
+# Flag to allow specific tasks to output their messages.
+nolog = True
