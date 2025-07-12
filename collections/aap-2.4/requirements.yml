@@ -1,6 +1,6 @@
 ---
 
-# Collections needed for AAP
+# Collections needed for AAP 2.4
 
 collections:
   - name: infra.controller_configuration
