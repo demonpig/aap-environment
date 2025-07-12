@@ -30,15 +30,6 @@ options:
     required: false
     type: integer
     default: 10
-  query:
-    description:
-      - Provides a set of operators for use with filters, condition builders, and encoded queries.
-      - The data type of a field determines what operators are available for it.
-        Refer to the ServiceNow Available Filters Queries documentation at
-        U(https://docs.servicenow.com/bundle/tokyo-platform-user-interface/page/use/common-ui-elements/reference/r_OpAvailableFiltersQueries.html).
-      - Mutually exclusive with C(sysparm_query).
-    type: list
-    elements: dict
 """
 
 import random
@@ -115,11 +106,6 @@ class InventoryModule(BaseInventoryPlugin):
         # call base method to ensure properties are available for use with other helper methods
         super(InventoryModule, self).parse(inventory, loader, path, cache)
         self._read_config_data(path=path)
-
-        for query in self.get_option('query'):
-          for k, v in query.items():
-              self.display.v(k)
-              self.display.v(v)
 
         count = self.get_option('count')
         self.display.vv(f"Inventory Count: {count}")
