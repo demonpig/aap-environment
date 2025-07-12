@@ -19,10 +19,10 @@
       timeout: "{{ task_timeout }}"
       ansible.builtin.setup:
 
-    - name: Register RHEL Servers
+    - name: RHEL | Register Servers
       when: ansible_distribution | lower == "redhat"
       block:
-        - name: Register via subscription-manager x1
+        - name: RHEL | Register via subscription-manager x1
           no_log: "{{ nolog | default(True) }}"
           timeout: "{{ task_timeout }}"
           community.general.redhat_subscription:
@@ -33,7 +33,7 @@
             auto_attach: true
             server_insecure: 1
       rescue:
-        - name: Retry register via subscription-manager x2
+        - name: RHEL | Retry register via subscription-manager x2
           no_log: "{{ nolog | default(True) }}"
           timeout: "{{ task_timeout }}"
           community.general.redhat_subscription:
@@ -43,6 +43,10 @@
             token: "{{ rhel_token | default(omit) }}"
             auto_attach: true
             server_insecure: 1
+
+    - name: Set hostname
+      ansible.builtin.hostname:
+        name: "{{ inventory_hostname }}"
 
     - name: Configure /etc/hosts
       ansible.builtin.blockinfile:
@@ -54,14 +58,14 @@
         backup: true
 
     - name: RHEL | Install glibc-langpack-en
-      when: ansible_os_family | lower == 'redhat' and 
+      when: ansible_os_family | lower == 'redhat' and
             ansible_distribution_major_version is version(version='9', operator='>=')
       ansible.builtin.dnf:
         name: glibc-langpack-en
         state: present
 
     - name: RHEL | Set /tmp to tmpfs
-      when: ansible_os_family | lower == 'redhat' and 
+      when: ansible_os_family | lower == 'redhat' and
             ansible_distribution_major_version is version(version='8', operator='>=')
       ansible.builtin.systemd_service:
         name: tmp.mount
