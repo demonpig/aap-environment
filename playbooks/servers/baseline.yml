@@ -44,10 +44,6 @@
             auto_attach: true
             server_insecure: 1
 
-    - name: Set hostname
-      ansible.builtin.hostname:
-        name: "{{ inventory_hostname }}"
-
     - name: Configure /etc/hosts
       ansible.builtin.blockinfile:
         block: "{{ lookup('ansible.builtin.template', './templates/etc/hosts.j2') }}"
