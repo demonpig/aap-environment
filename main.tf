@@ -18,6 +18,7 @@ provider "openstack" {
 }
 
 locals {
+    rhel10_os_release = "RHEL-10.1-x86_64-ga-latest"
     rhel9_os_release = "RHEL-9.0.0-x86_64-released"
     rhel8_os_release = "RHEL-8.6.0-x86_64-released"
 }
@@ -99,7 +100,7 @@ resource "openstack_compute_instance_v2" "automation_hub" {
 resource "openstack_compute_instance_v2" "database" {
   name = "${var.username}_aap_${var.aap_version}_database_${count.index + 1}"
   image_name = coalesce(var.database_os_release, local.rhel9_os_release)
-  flavor_name = "g.disk.medium"
+  flavor_name = "g.memory.medium"
   count = var.database_count
 
   key_pair = "${var.username}-rsa"
@@ -132,7 +133,25 @@ resource "openstack_compute_instance_v2" "execution_node" {
   }
 }
 
-resource "openstack_compute_instance_v2" "managed" {
+resource "openstack_compute_instance_v2" "managed_rhel10" {
+  name = "${var.username}_aap_${var.aap_version}_managed_rhel10_${count.index + 1}"
+  image_name = "${local.rhel10_os_release}"
+  flavor_name = "m1.medium"
+  count = var.managed_node_count
+
+  key_pair = "${var.username}-rsa"
+  security_groups = ["default"]
+
+  network {
+      name = "provider_net_shared_3"
+  }
+
+  metadata = {
+    description = "Managed System (RHEL 10)"
+  }
+}
+
+resource "openstack_compute_instance_v2" "managed_rhel9" {
   name = "${var.username}_aap_${var.aap_version}_managed_${count.index + 1}"
   image_name = "${local.rhel9_os_release}"
   flavor_name = "m1.medium"

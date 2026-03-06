@@ -1,3 +1,0 @@
----
-
-ansible_ssh_common_args: '-o ServerAliveInterval=30 -o ServerAliveCountMax=5'

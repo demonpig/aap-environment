@@ -1,0 +1,193 @@
+---
+
+- name: Gathering facts about environment
+  hosts: all:!windows:!local
+  gather_facts: false
+
+  tasks:
+    - name: Gather minimal facts
+      timeout: 30
+      ansible.builtin.setup:
+        gather_subset:
+          - '!all'
+          - 'min'
+
+    - name: Debug facts
+      ansible.builtin.debug:
+        var: ansible_facts
+        verbosity: 3
+
+    - name: Group the hosts by distribution and major version
+      ansible.builtin.group_by:
+        key: os_{{ ansible_distribution }}
+      vars:
+        ansible_distribution: "{{ ansible_facts['distribution'] | lower }}"
+
+    - name: Group the hosts by distribution and major version
+      ansible.builtin.group_by:
+        key: os_{{ ansible_distribution }}_{{ ansible_distribution_major_version }}
+      vars:
+        ansible_distribution: "{{ ansible_facts['distribution'] | lower }}"
+        ansible_distribution_major_version: "{{ ansible_facts['distribution_major_version'] }}"
+
+
+- name: Register RHEL
+  hosts: os_redhat
+  gather_facts: false
+
+  vars_files:
+    - ~/.ansible/secrets.yml
+
+  roles:
+    - role: linux-system-roles.rhc
+      rhc_insights:
+        state: absent
+      rhc_auth:
+        login:
+          username: "{{ rhel_username }}"
+          password: "{{ rhel_password }}"
+
+
+- name: Baseline Configuration Playbook
+  hosts: os_redhat
+  gather_facts: false
+
+  handlers:
+    - name: Restart sshd
+      ansible.builtin.systemd_service:
+        name: sshd
+        state: restarted
+
+  tasks:
+    - name: Gather minimal facts
+      timeout: 30
+      ansible.builtin.setup:
+        gather_subset:
+          - '!all'
+          - 'min'
+
+    - name: Install glibc-langpack-en
+      when: ansible_facts['distribution_major_version'] is version(version='9', operator='==')
+      ansible.builtin.dnf:
+        name: glibc-langpack-en
+        state: present
+
+    - name: Set /tmp to tmpfs
+      when: ansible_facts['distribution_major_version'] is version(version='8', operator='>=')
+      ansible.builtin.systemd_service:
+        name: tmp.mount
+        enabled: true
+        masked: no
+
+    - name: Remove the password for root
+      ansible.builtin.command: passwd -d root
+
+    - name: Set password for '{{ ansible_user }}'
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        state: present
+        password: "{{ lookup('pipe', 'openssl passwd -6 ' + ansible_user|quote) }}"
+        update_password: always
+
+    - name: Manage SSH Keys
+      block:
+        - name: Extra all SSH URLs into list
+          ansible.builtin.set_fact:
+            _url_list:  "{{ ssh_keys | selectattr('url', 'defined') | map(attribute='url') | list }}"
+
+        - name: Extract all Pubkeys into a list
+          ansible.builtin.set_fact:
+            _pubkey_list: "{{ ssh_keys | selectattr('pubkey', 'defined') | map(attribute='pubkey') | list }}"
+
+        - name: Create temp file to store the pubkeys
+          delegate_to: localhost
+          become: false
+          run_once: true
+          ansible.builtin.tempfile:
+            state: file
+          register: _pubkey_file
+
+        - name: Output the pubkeys to temp file
+          delegate_to: localhost
+          become: false
+          run_once: true
+          ansible.builtin.copy:
+            content: "{{ _pubkey_list | join('\n') }}"
+            dest: "{{ _pubkey_file.path }}"
+
+        - name: Configure SSH keys for '{{ ansible_user }}'
+          ansible.posix.authorized_key:
+            user: "{{ ansible_user }}"
+            key: "{{ item }}"
+            exclusive: no
+            state: present
+          loop: "{{ _url_list + lookup('file', _pubkey_file.path).splitlines() }}"
+      always:
+        - name: Cleanup tempfile
+          when: _pubkey_file is defined
+          run_once: true
+          ansible.builtin.file:
+            path: "{{ _pubkey_file.path }}"
+            state: absent
+
+    - name: Enable Password Authentication in sshd_config
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication yes'
+        state: present
+        validate: '/usr/sbin/sshd -t -f %s'
+      notify: Restart sshd
+
+    - name: Run handlers
+      ansible.builtin.meta: flush_handlers
+
+
+- name: Patching Playbook
+  hosts: os_redhat
+  gather_facts: false
+
+  tasks:
+    - name: Gather minimal facts
+      timeout: 30
+      ansible.builtin.setup:
+        gather_subset:
+          - '!all'
+          - 'min'
+
+    - name: Clear DNF cache and upgrade
+      block:
+        - name: Run dnf clean all
+          ansible.builtin.command: dnf clean all
+
+        - name: Delete /var/cache/dnf
+          ansible.builtin.file:
+            path: /var/cache/dnf
+            state: absent
+
+        - name: Update all packages
+          timeout: "{{ task_timeout | d(600) }}"
+          ansible.builtin.package:
+            name: "*"
+            state: latest
+            update_cache: true
+
+    - name: Reboot Server
+      block:
+        # RHEL Servers
+        - name: RHEL | Check if system needs to be rebooted
+          failed_when: false
+          changed_when: false
+          register: _rh_require_reboot
+          ansible.builtin.command: dnf needs-restarting -r
+
+        - name: RHEL | Set fact server doesn't need a reboot
+          when: _rh_require_reboot.rc == 0
+          ansible.builtin.set_fact:
+            _require_reboot: false
+
+        - name: Reboot the server (if required)
+          when: _require_reboot | d(true)
+          timeout: "{{ task_timeout | d(300) }}"
+          ansible.builtin.reboot:
+            test_command: echo "Good Morning Sunshine!"

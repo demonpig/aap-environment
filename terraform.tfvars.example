@@ -14,20 +14,32 @@ aap_version = ""
 
 controller_count = 1
 #controller_os_release = "RHEL-8.6.0-x86_64-released"
+#controller_os_release = "RHEL-9.0.0-x86_64-released"
+#controller_os_release = "RHEL-10.1-x86_64-ga-latest"
 
 eda_count = 0
 #eda_os_release = "RHEL-8.6.0-x86_64-released"
+#eda_os_release = "RHEL-9.0.0-x86_64-released"
+#eda_os_release = "RHEL-10.1-x86_64-ga-latest"
 
 gateway_count = 0
 #gateway_os_release = "RHEL-8.6.0-x86_64-released"
+#gateway_os_release = "RHEL-9.0.0-x86_64-released"
+#gateway_os_release = "RHEL-10.1-x86_64-ga-latest"
 
 automation_hub_count = 0
 #automation_hub_os_release = "RHEL-8.6.0-x86_64-released"
+#automation_hub_os_release = "RHEL-9.0.0-x86_64-released"
+#automation_hub_os_release = "RHEL-10.1-x86_64-ga-latest"
 
 database_count = 0
 #database_os_release = "RHEL-8.6.0-x86_64-released"
+#database_os_release = "RHEL-9.0.0-x86_64-released"
+#database_os_release = "RHEL-10.1-x86_64-ga-latest"
 
 execution_node_count = 0
 #execution_node_os_release = "RHEL-8.6.0-x86_64-released"
+#execution_node_os_release = "RHEL-9.0.0-x86_64-released"
+#execution_node_os_release = "RHEL-10.1-x86_64-ga-latest"
 
 managed_node_count = 0

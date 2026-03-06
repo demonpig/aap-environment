@@ -1,8 +1,11 @@
-ansible-automation-platform-setup*
-*.log
+# Manual Edits
+collections/**
+!collections/requirements.yml
+**/.ansible/*
+**/.vscode/*
 
-# Created by https://www.toptal.com/developers/gitignore/api/git,linux,macos,python,ansible,vagrant,windows,ansibletower,terraform
-# Edit at https://www.toptal.com/developers/gitignore?templates=git,linux,macos,python,ansible,vagrant,windows,ansibletower,terraform
+# Created by https://www.toptal.com/developers/gitignore/api/ansible,ansibletower,windows,linux,terraform,macos,python,git
+# Edit at https://www.toptal.com/developers/gitignore?templates=ansible,ansibletower,windows,linux,terraform,macos,python,git
 
 ### Ansible ###
 *.retry
@@ -14,13 +17,15 @@ ansible-automation-platform-setup*
 *.bkp
 *.*~
 
+# Tower runtime roles
+roles/**
+!roles/requirements.yml
+
 # Avoid plain-text passwords
 *pwd*
 *pass*
 *password*
 *.txt
-!update_password.yml
-!requirements.txt
 
 # Exclude all binaries
 *.bin
@@ -302,16 +307,6 @@ override.tf.json
 .terraformrc
 terraform.rc
 
-### Vagrant ###
-# General
-.vagrant/
-
-# Log files (if you are creating logs in debug mode, uncomment this)
-# *.log
-
-### Vagrant Patch ###
-*.box
-
 ### Windows ###
 # Windows thumbnail cache files
 Thumbs.db
@@ -338,4 +333,4 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# End of https://www.toptal.com/developers/gitignore/api/git,linux,macos,python,ansible,vagrant,windows,ansibletower,terraform
+# End of https://www.toptal.com/developers/gitignore/api/ansible,ansibletower,windows,linux,terraform,macos,python,git

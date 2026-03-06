@@ -1,7 +1,0 @@
----
-
-- ansible.builtin.import_playbook: grouping.yml
-
-- ansible.builtin.import_playbook: baseline.yml
-
-- ansible.builtin.import_playbook: patching.yml

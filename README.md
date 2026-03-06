@@ -10,7 +10,11 @@ Make sure to do the following prior to running any playbook within this reposito
 
   - [Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
 
-  - [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
+  - [Ansible 2.16](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
+
+    ```
+    python3 -m venv .env && ./.env/bin/pip install --upgrade 'ansible-core<2.17' pip setuptools
+    ```
 
   - `jq`
 

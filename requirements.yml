@@ -3,5 +3,7 @@
 collections:
   - name: ansible.posix
   - name: community.general
-  - name: devsec.hardening
-  - name: infra.aap_utilities
+    version: 7.5.0
+
+roles:
+  - name: linux-system-roles.rhc
