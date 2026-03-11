@@ -48,7 +48,7 @@
           password: "{{ rhel_password }}"
 
 
-- name: Baseline Configuration Playbook
+- name: Baseline Configuration Play
   hosts: os_redhat
   gather_facts: false
 
@@ -59,12 +59,9 @@
         state: restarted
 
   tasks:
-    - name: Gather minimal facts
+    - name: Gather facts
       timeout: 30
       ansible.builtin.setup:
-        gather_subset:
-          - '!all'
-          - 'min'
 
     - name: Install glibc-langpack-en
       when: ansible_facts['distribution_major_version'] is version(version='9', operator='==')
@@ -78,6 +75,18 @@
         name: tmp.mount
         enabled: true
         masked: no
+
+    - name: Configure /etc/hosts
+      ansible.builtin.blockinfile:
+        dest: /etc/hosts
+        marker: "# {mark} ANSIBLE MANAGED BLOCK"
+        owner: root
+        group: root
+        mode: '0644'
+        block: |
+          {% for host in play_hosts -%}
+          {{ hostvars[host]['ansible_facts']['default_ipv4']['address'] }} {{ host }}
+          {% endfor -%}
 
     - name: Remove the password for root
       ansible.builtin.command: passwd -d root
@@ -143,7 +152,7 @@
       ansible.builtin.meta: flush_handlers
 
 
-- name: Patching Playbook
+- name: Patching Play
   hosts: os_redhat
   gather_facts: false
 

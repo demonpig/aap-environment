@@ -28,12 +28,6 @@ Make sure to do the following prior to running any playbook within this reposito
 
 # Openstack
 
-- Change into the `openstack` directory
-
-  ```
-  cd environments/openstack
-  ```
-
 - Initialize terraform
 
   ```
@@ -59,39 +53,27 @@ Make sure to do the following prior to running any playbook within this reposito
 - Run the following command to get a list of all servers and their IPs
 
   ```
-  terraform show -json | jq -r '.values.root_module.resources[] | .name + " ansible_host=" + .values.access_ip_v4'
+  terraform show -json | jq -r '.values.root_module.resources[] | .name + " : " + .values.access_ip_v4'
   ```
 
 You can use the output from the above function and apply it to the `inventories/hosts` file.
 
 # Server Configuration
 
-- Copy the manifest file to `~/.ansible/manifest.zip`
-
-- Fill in the missing `token` fields within the `ansible.cfg` with the offline access token from console.redhat.com
-
 - Fill out the `inventories/hosts` file using the output from the `terraform` command (see above)
 
 
-- Install the some general collections
+- Install some collections / roles
 
   ```
-  ansible-galaxy collection install -r collections/requirements.yml
-  ```
-
-- Install one set of collections for either AAP 2.4 or 2.5
-
-  ```
-  # AAP 2.5
-  ansible-galaxy collection install -f -r collections/requirements.aap.yml
+  ansible-galaxy collection install -r requirements.yml
   ```
   ```
-  # AAP 2.4
-  ansible-galaxy collection install -f -r collections/requirements.aap24.yml
+  ansible-galaxy role install -r requirements.yml
   ```
 
 - Run the server configuration playbook to apply a baseline configuration and update / reboot them
 
   ```
-  ansible-playbook -i inventories/hosts playbooks/servers/pipeline.yml -vv -b --ask-vault-pass
+  ansible-playbook site.yml -vv -b --ask-vault-pass
   ```
