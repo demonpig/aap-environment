@@ -90,12 +90,12 @@
 
     - name: Remove the password for root
       ansible.builtin.command: passwd -d root
-
+    
     - name: Set password for '{{ ansible_user }}'
       ansible.builtin.user:
         name: "{{ ansible_user }}"
         state: present
-        password: "{{ lookup('pipe', 'openssl passwd -6 ' + ansible_user|quote) }}"
+        password: "{{ ansible_user | password_hash('sha512_crypt') }}"
         update_password: always
 
     - name: Manage SSH Keys
