@@ -139,13 +139,30 @@
             path: "{{ _pubkey_file.path }}"
             state: absent
 
-    - name: Enable Password Authentication in sshd_config
-      ansible.builtin.lineinfile:
-        path: /etc/ssh/sshd_config
-        regexp: '^#?PasswordAuthentication'
-        line: 'PasswordAuthentication yes'
-        state: present
-        validate: '/usr/sbin/sshd -t -f %s'
+    - name: Ensure Password Authentication is enabled globally
+      block:
+        - name: Set PasswordAuthentication to yes in main config
+          ansible.builtin.lineinfile:
+            path: /etc/ssh/sshd_config
+            regexp: '^#?PasswordAuthentication'
+            line: 'PasswordAuthentication yes'
+            state: present
+            validate: '/usr/sbin/sshd -t -f %s'
+
+        - name: Check for PasswordAuthentication overrides in sshd_config.d
+          ansible.builtin.shell: grep -l "PasswordAuthentication" /etc/ssh/sshd_config.d/*.conf
+          register: ssh_overrides
+          failed_when: false
+          changed_when: false
+
+        - name: Disable "PasswordAuthentication no" in override files
+          ansible.builtin.replace:
+            path: "{{ item }}"
+            regexp: '(?i)^PasswordAuthentication\s+no'
+            replace: 'PasswordAuthentication yes'
+            validate: '/usr/sbin/sshd -t -f %s'
+          loop: "{{ ssh_overrides.stdout_lines }}"
+          when: ssh_overrides.stdout != ""
       notify: Restart sshd
 
     - name: Run handlers
