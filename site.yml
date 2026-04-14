@@ -38,14 +38,36 @@
   vars_files:
     - ~/.ansible/secrets.yml
 
+  vars:
+    # This works for both RHEL 9 and RHEL 10 based on your output
+    rhc_base_repositories:
+      - name: "rhel-{{ ansible_facts['distribution_major_version'] }}-for-{{ ansible_facts['architecture'] }}-baseos-rpms"
+        state: enabled
+      - name: "rhel-{{ ansible_facts['distribution_major_version'] }}-for-{{ ansible_facts['architecture'] }}-appstream-rpms"
+        state: enabled
+
+  # We move the config command to PRE_TASKS to prevent the 'not a valid repository' error
+  pre_tasks:
+    - name: Ensure subscription-manager allows repo management before role runs
+      ansible.builtin.command:
+        cmd: subscription-manager config --rhsm.manage_repos=1
+      changed_when: false
+
   roles:
     - role: linux-system-roles.rhc
-      rhc_insights:
-        state: absent
       rhc_auth:
         login:
           username: "{{ rhel_username }}"
           password: "{{ rhel_password }}"
+      rhc_insights:
+        state: absent
+      rhc_repositories: "{{ rhc_base_repositories }}"
+
+  post_tasks:
+    - name: Final check to ensure manage_repos stayed enabled
+      ansible.builtin.command:
+        cmd: subscription-manager config --rhsm.manage_repos=1
+      changed_when: false
 
 
 - name: Baseline Configuration Play
