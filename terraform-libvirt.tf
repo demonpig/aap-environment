@@ -53,6 +53,6 @@ resource "libvirt_domain" "instance" {
 
   network_interface {
     network_name   = var.libvirt_network
-    wait_for_lease = false
+    wait_for_lease = true
   }
 }
