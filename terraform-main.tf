@@ -1,188 +1,89 @@
-# Define required providers
-
 terraform {
-  # Version of terraform cli to use within this project
   required_version = ">= 0.14.0"
 
-  # Version of providers
   required_providers {
     openstack = {
       source  = "terraform-provider-openstack/openstack"
       version = "~> 1.53.0"
     }
+    libvirt = {
+      source  = "dmacvicar/libvirt"
+      version = "~> 0.8.3"
+    }
   }
-}
-
-provider "openstack" {
-  cloud = "openstack"
 }
 
 locals {
-    rhel10_os_release = "RHEL-10.1-x86_64-ga-latest"
-    rhel9_os_release = "RHEL-9.0.0-x86_64-released"
-    rhel8_os_release = "RHEL-8.6.0-x86_64-released"
-}
+  libvirt_image_dir = pathexpand(var.libvirt_image_dir)
 
-# Ansible Automation Platform Environment
-
-resource "openstack_compute_instance_v2" "controller" {
-  name = "${var.username}_aap_${var.aap_version}_controller_${count.index + 1}"
-  image_name = coalesce(var.controller_os_release, local.rhel9_os_release)
-  flavor_name = "g.memory.medium"
-  count = var.controller_count
-
-  key_pair = "${var.username}-rsa"
-  security_groups = ["default"]
-
-  network {
-      name = "provider_net_shared_3"
+  # Stable OS-version names map to the provider-specific image identifiers.
+  os_versions = {
+    rhel8 = {
+      libvirt_image     = "${local.libvirt_image_dir}/rhel-8.10-x86_64-kvm.qcow2"
+      openstack_release = "RHEL-8.6.0-x86_64-released"
+    }
+    rhel9 = {
+      libvirt_image     = "${local.libvirt_image_dir}/rhel-9.8-x86_64-kvm.qcow2"
+      openstack_release = "RHEL-9.0.0-x86_64-released"
+    }
+    rhel10 = {
+      libvirt_image     = "${local.libvirt_image_dir}/rhel-10.2-x86_64-kvm.qcow2"
+      openstack_release = "RHEL-10.1-x86_64-ga-latest"
+    }
   }
 
-  metadata = {
-    description = "Automation Controller"
-  }
-}
-
-resource "openstack_compute_instance_v2" "eda" {
-  name = "${var.username}_aap_${var.aap_version}_eda_${count.index + 1}"
-  image_name = coalesce(var.eda_os_release, local.rhel9_os_release)
-  flavor_name = "g.memory.medium"
-  count = var.eda_count
-
-  key_pair = "${var.username}-rsa"
-  security_groups = ["default"]
-
-  network {
-      name = "provider_net_shared_3"
+  # Role selectors use the standard version keys above for either provider.
+  libvirt_role_images = {
+    controller     = var.controller_os_version
+    eda            = var.eda_os_version
+    gateway        = var.gateway_os_version
+    automation_hub = var.automation_hub_os_version
+    database       = var.database_os_version
+    execution_node = var.execution_node_os_version
+    managed_rhel8  = "rhel8"
+    managed_rhel9  = "rhel9"
+    managed_rhel10 = "rhel10"
   }
 
-  metadata = {
-    description = "EDA Server"
-  }
-}
-
-resource "openstack_compute_instance_v2" "gateway" {
-  name = "${var.username}_aap_${var.aap_version}_gateway_${count.index + 1}"
-  image_name = coalesce(var.gateway_os_release, local.rhel9_os_release)
-  flavor_name = "g.memory.medium"
-  count = var.gateway_count
-
-  key_pair = "${var.username}-rsa"
-  security_groups = ["default"]
-
-  network {
-      name = "provider_net_shared_3"
+  libvirt_role_counts = {
+    controller     = var.controller_count
+    eda            = var.eda_count
+    gateway        = var.gateway_count
+    automation_hub = var.automation_hub_count
+    database       = var.database_count
+    execution_node = var.execution_node_count
+    managed_rhel8  = var.managed_node_count
+    managed_rhel9  = var.managed_node_count
+    managed_rhel10 = var.managed_node_count
   }
 
-  metadata = {
-    description = "Automation Gateway"
-  }
-}
-
-resource "openstack_compute_instance_v2" "automation_hub" {
-  name = "${var.username}_aap_${var.aap_version}_automation_hub_${count.index + 1}"
-  image_name = coalesce(var.automation_hub_os_release, local.rhel9_os_release)
-  flavor_name = "g.memory.medium"
-  count = var.automation_hub_count
-
-  key_pair = "${var.username}-rsa"
-  security_groups = ["default"]
-
-  network {
-      name = "provider_net_shared_3"
+  libvirt_role_names = {
+    controller     = "controller"
+    eda            = "eda"
+    gateway        = "gateway"
+    automation_hub = "automation_hub"
+    database       = "database"
+    execution_node = "execution_node"
+    managed_rhel8  = "managed_rhel8"
+    managed_rhel9  = "managed"
+    managed_rhel10 = "managed_rhel10"
   }
 
-  metadata = {
-    description = "Automation Hub"
-  }
-}
-
-resource "openstack_compute_instance_v2" "database" {
-  name = "${var.username}_aap_${var.aap_version}_database_${count.index + 1}"
-  image_name = coalesce(var.database_os_release, local.rhel9_os_release)
-  flavor_name = "g.memory.medium"
-  count = var.database_count
-
-  key_pair = "${var.username}-rsa"
-  security_groups = ["default"]
-
-  network {
-      name = "provider_net_shared_3"
-  }
-
-  metadata = {
-    description = "Database"
-  }
-}
-
-resource "openstack_compute_instance_v2" "execution_node" {
-  name = "${var.username}_aap_${var.aap_version}_execution_node_${count.index + 1}"
-  image_name = coalesce(var.execution_node_os_release, local.rhel9_os_release)
-  flavor_name = "m1.medium"
-  count = var.execution_node_count
-
-  key_pair = "${var.username}-rsa"
-  security_groups = ["default"]
-
-  network {
-      name = "provider_net_shared_3"
-  }
-
-  metadata = {
-    description = "Execution Node"
-  }
-}
-
-resource "openstack_compute_instance_v2" "managed_rhel10" {
-  name = "${var.username}_aap_${var.aap_version}_managed_rhel10_${count.index + 1}"
-  image_name = "${local.rhel10_os_release}"
-  flavor_name = "m1.medium"
-  count = var.managed_node_count
-
-  key_pair = "${var.username}-rsa"
-  security_groups = ["default"]
-
-  network {
-      name = "provider_net_shared_3"
-  }
-
-  metadata = {
-    description = "Managed System (RHEL 10)"
-  }
-}
-
-resource "openstack_compute_instance_v2" "managed_rhel9" {
-  name = "${var.username}_aap_${var.aap_version}_managed_${count.index + 1}"
-  image_name = "${local.rhel9_os_release}"
-  flavor_name = "m1.medium"
-  count = var.managed_node_count
-
-  key_pair = "${var.username}-rsa"
-  security_groups = ["default"]
-
-  network {
-      name = "provider_net_shared_3"
-  }
-
-  metadata = {
-    description = "Managed System"
-  }
-}
-
-resource "openstack_compute_instance_v2" "managed_rhel8" {
-  name = "${var.username}_aap_${var.aap_version}_managed_rhel8_${count.index + 1}"
-  image_name = "${local.rhel8_os_release}"
-  flavor_name = "m1.medium"
-  count = var.managed_node_count
-
-  key_pair = "${var.username}-rsa"
-  security_groups = ["default"]
-
-  network {
-      name = "provider_net_shared_3"
-  }
-
-  metadata = {
-    description = "Managed System (RHEL 8)"
+  libvirt_instances = {
+    for instance in flatten([
+      for role, count in local.libvirt_role_counts : [
+        for index in range(count) : {
+          key   = "${role}-${index + 1}"
+          role  = role
+          index = index + 1
+        }
+      ]
+      ]) : instance.key => {
+      role  = instance.role
+      index = instance.index
+      name  = "${var.username}_aap_${var.aap_version}_${local.libvirt_role_names[instance.role]}_${instance.index}"
+      image = local.os_versions[local.libvirt_role_images[instance.role]].libvirt_image
+    }
+    if var.compute_backend == "libvirt"
   }
 }
