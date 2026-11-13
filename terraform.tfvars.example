@@ -2,6 +2,9 @@
 # Used in instance names and as the OpenStack key-pair name.
 username                  = "yourname"
 
+# AAP release version
+aap_version               = "latest"
+
 # OS versions use standardized names: rhel8, rhel9, or rhel10.
 # Provider-specific image identifiers are selected automatically.
 
