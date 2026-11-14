@@ -60,7 +60,7 @@ OpenStack continues to use the existing cloud, flavor, network, security-group, 
 
 # Server configuration
 
-After applying the infrastructure from the repository root, the default inventory automatically calls `terraform` or `tofu` to read the `instances` output; no inventory file edits are needed. Terraform must report a reachable address for each host. Store the RHSM credentials `rhel_username` and `rhel_password` in `~/.ansible/secrets.yml`, then run the setup script from the repository root:
+After applying the infrastructure from the repository root, the default inventory automatically calls `terraform` or `tofu` to read the `instances` output; no inventory file edits are needed. Terraform must report a reachable address for each host. Run `./setup.sh --list` to print each host and IP on one line. Store the RHSM credentials `rhel_username` and `rhel_password` in `~/.ansible/secrets.yml`, then run the setup script from the repository root:
 
 ```sh
 ./setup.sh

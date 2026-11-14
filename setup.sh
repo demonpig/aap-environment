@@ -13,6 +13,7 @@ VENV_DIR="$ROOT_DIR/.env"
 VENV_PYTHON="$VENV_DIR/bin/python"
 VENV_PIP="$VENV_DIR/bin/pip"
 VENV_ANSIBLE_GALAXY="$VENV_DIR/bin/ansible-galaxy"
+VENV_ANSIBLE_INVENTORY="$VENV_DIR/bin/ansible-inventory"
 VENV_ANSIBLE_PLAYBOOK="$VENV_DIR/bin/ansible-playbook"
 COLLECTIONS_DIR="$ROOT_DIR/.ansible/collections"
 
@@ -37,6 +38,38 @@ PY
 then
   echo "Installing Python dependencies from requirements.txt..."
   "$VENV_PIP" install --disable-pip-version-check -r requirements.txt
+fi
+
+if [[ "${1:-}" == "--list" ]]; then
+  if [[ $# -ne 1 ]]; then
+    echo "Usage: ./setup.sh --list" >&2
+    exit 2
+  fi
+
+  "$VENV_ANSIBLE_INVENTORY" --list | "$VENV_PYTHON" -c '
+import json
+import sys
+
+hostvars = json.load(sys.stdin).get("_meta", {}).get("hostvars", {})
+if not hostvars:
+    raise SystemExit("Terraform inventory contains no hosts.")
+
+hosts = []
+missing = []
+for hostname, variables in sorted(hostvars.items()):
+    address = variables.get("ansible_host")
+    if address:
+        hosts.append((hostname, address))
+    else:
+        missing.append(hostname)
+
+if missing:
+    raise SystemExit("Terraform inventory has no IP for: " + ", ".join(missing))
+
+for hostname, address in hosts:
+    print(f"{hostname} {address}")
+'
+  exit 0
 fi
 
 if ! "$VENV_PYTHON" - "$ROOT_DIR/requirements.yml" "$COLLECTIONS_DIR" <<'PY'
