@@ -4,11 +4,7 @@ This repository contains content used to set up Ansible Tower / Ansible Automati
 
 # Setup
 
-Install Terraform, Ansible 2.16, and `jq` before running the playbooks. Ansible can be installed in a virtual environment with:
-
-```sh
-python3 -m venv .env && ./.env/bin/pip install --upgrade 'ansible-core<2.17' pip setuptools
-```
+Install Terraform or OpenTofu and `jq` before running the playbooks. The `setup.sh` script creates a `.env` virtual environment, installs the Python and Ansible Galaxy dependencies when needed, and then runs the baseline playbook.
 
 Obtain an Ansible Automation Platform manifest from the [Red Hat documentation](https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.5/html/access_management_and_authentication/assembly-gateway-licensing) and an offline access token from https://console.redhat.com/ansible/automation-hub/token.
 
@@ -43,7 +39,7 @@ terraform apply
 terraform output -json instances
 ```
 
-The default `default` libvirt network typically provides DHCP/NAT rather than inbound reachability from every host. `wait_for_lease` can report addresses when the network/guest reports leases; if addresses are absent, use DHCP reservations or enter reachable addresses manually in `inventories/hosts.yml`. Configure firewall/routing as required. Do not assume the OpenStack security group/floating-IP behavior exists on libvirt.
+The default `default` libvirt network typically provides DHCP/NAT rather than inbound reachability from every host. `wait_for_lease` can report addresses when the network/guest reports leases. The Terraform-backed inventory uses the first address in the `instances` output; if no address is reported, configure DHCP lease reporting/reservations or another reachable network before running Ansible. Configure firewall/routing as required. Do not assume the OpenStack security group/floating-IP behavior exists on libvirt.
 
 **Keep backend state separate.** Use separate working directories/state files (for example, separate Terraform workspaces only if their state separation is explicitly maintained) for libvirt and OpenStack. Never change `compute_backend` in a state that already manages resources from the other provider: Terraform can plan destruction of resources that are no longer selected. Always inspect the full plan before applying.
 
@@ -64,10 +60,8 @@ OpenStack continues to use the existing cloud, flavor, network, security-group, 
 
 # Server configuration
 
-Populate `inventories/hosts.yml` with reachable addresses from the Terraform `instances` output (or DHCP reservations/manual entries where lease reporting is unavailable), and use the login appropriate for the chosen backend/image. Install collections and roles, then run the baseline playbook:
+After applying the infrastructure from the repository root, the default inventory automatically calls `terraform` or `tofu` to read the `instances` output; no inventory file edits are needed. Terraform must report a reachable address for each host. Store the RHSM credentials `rhel_username` and `rhel_password` in `~/.ansible/secrets.yml`, then run the setup script from the repository root:
 
 ```sh
-ansible-galaxy collection install -r requirements.yml
-ansible-galaxy role install -r requirements.yml
-ansible-playbook site.yml -vv -b --ask-vault-pass
+./setup.sh
 ```

@@ -4,6 +4,3 @@ collections:
   - name: ansible.posix
   - name: community.general
     version: 7.5.0
-
-roles:
-  - name: linux-system-roles.rhc

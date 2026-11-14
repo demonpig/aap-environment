@@ -1,6 +1,4 @@
 # Manual Edits
-collections/**
-!collections/requirements.yml
 **/.ansible/*
 **/.vscode/*
 

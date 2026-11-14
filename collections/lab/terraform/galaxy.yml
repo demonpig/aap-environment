@@ -1,0 +1,17 @@
+namespace: lab
+name: terraform
+version: 1.0.0
+readme: README.md
+authors:
+  - Max Mitschke
+description: Ansible content for the Terraform-managed AAP lab environment.
+license:
+  - MIT
+tags:
+  - aap
+  - automation
+  - lab
+dependencies:
+  ansible.posix: "*"
+  community.general: "7.5.0"
+repository: https://github.com/demonpig/aap-environment

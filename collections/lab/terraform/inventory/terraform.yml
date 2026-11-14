@@ -1,0 +1,18 @@
+---
+plugin: lab.terraform.terraform
+terraform_dir: ../../../../
+output_name: instances
+hostvars:
+  ansible_user: cloud-user
+  ssh_keys:
+    - url: https://github.com/demonpig.keys
+group_vars:
+  os_redhat_8:
+    ansible_python_interpreter: /usr/libexec/platform-python
+  os_redhat_9:
+    ansible_python_interpreter: /usr/bin/python3.9
+  os_redhat_10:
+    ansible_python_interpreter: /usr/bin/python3.12
+  local:
+    ansible_connection: local
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"

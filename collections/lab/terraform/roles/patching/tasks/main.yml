@@ -1,0 +1,23 @@
+---
+- name: Update all packages
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+    update_cache: true
+  timeout: "{{ task_timeout | default(600) }}"
+
+- name: Check whether the host needs a reboot
+  ansible.builtin.command:
+    argv:
+      - dnf
+      - needs-restarting
+      - -r
+  register: _reboot_check
+  failed_when: false
+  changed_when: false
+
+- name: Reboot the host when required
+  ansible.builtin.reboot:
+    test_command: echo "Good Morning Sunshine!"
+  timeout: "{{ task_timeout | default(300) }}"
+  when: _reboot_check.rc != 0

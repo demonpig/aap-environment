@@ -1,0 +1,30 @@
+---
+- name: Gather facts and group hosts by operating system
+  hosts: all:!windows:!local
+  gather_facts: false
+  tasks:
+    - name: Gather minimal facts
+      ansible.builtin.setup:
+        gather_subset:
+          - "!all"
+          - min
+          - network
+
+    - name: Group hosts by distribution
+      ansible.builtin.group_by:
+        key: "os_{{ ansible_facts.distribution | lower }}"
+
+    - name: Group hosts by distribution and major version
+      ansible.builtin.group_by:
+        key: "os_{{ ansible_facts.distribution | lower }}_{{ ansible_facts.distribution_major_version }}"
+
+- name: Apply the RHEL baseline
+  hosts: os_redhat
+  gather_facts: false
+  become: true
+  vars_files:
+    - ~/.ansible/secrets.yml
+  roles:
+    - lab.terraform.registration
+    - lab.terraform.baseline
+    - lab.terraform.patching

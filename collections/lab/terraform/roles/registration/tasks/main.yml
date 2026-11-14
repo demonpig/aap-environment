@@ -1,0 +1,28 @@
+---
+- name: Register this host with Red Hat Subscription Management
+  community.general.redhat_subscription:
+    state: present
+    username: "{{ rhel_username }}"
+    password: "{{ rhel_password }}"
+    auto_attach: "{{ ansible_facts.distribution_major_version | int < 10 }}"
+  no_log: "{{ nolog | default(true, true) }}"
+
+- name: Enable RHSM repository management
+  ansible.builtin.command:
+    argv:
+      - subscription-manager
+      - config
+      - --rhsm.manage_repos=1
+  changed_when: false
+
+- name: Disable all RHSM repositories
+  community.general.rhsm_repository:
+    name: "*"
+    state: disabled
+
+- name: Enable the RHEL BaseOS and AppStream repositories
+  community.general.rhsm_repository:
+    name:
+      - "rhel-{{ ansible_facts.distribution_major_version }}-for-{{ ansible_facts.architecture }}-baseos-rpms"
+      - "rhel-{{ ansible_facts.distribution_major_version }}-for-{{ ansible_facts.architecture }}-appstream-rpms"
+    state: enabled
